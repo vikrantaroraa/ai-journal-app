@@ -8,6 +8,7 @@ export default function RootLayout() {
       contentStyle: { backgroundColor: '#F9FAFB' } 
     }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="calendar" options={{ title: "Calendar", headerBackVisible: true, headerBackTitleVisible: false }} />
       <Stack.Screen name="journal/[date]" options={{ title: "Journal", headerBackVisible: true, headerBackTitleVisible: false }} />
     </Stack>
   );

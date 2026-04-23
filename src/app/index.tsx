@@ -54,7 +54,9 @@ export default function Home() {
   }, [timeline]);
 
   const renderItem = ({ item }: { item: any }) => {
-    const dateObj = new Date(item.createdAt);
+    // Use the parent Journal's exact date string (e.g., "2026-04-22")
+    // Appending T12:00:00 forces it to midday safely avoiding any timezone shifts.
+    const dateObj = new Date(`${item.parentDateString}T12:00:00`);
     const dayNumeric = dateObj.getDate().toString();
     const monthShort = dateObj.toLocaleDateString('en-US', { month: 'short' });
     const emoji = moodEmojis[item.mood] || '😐';
@@ -84,10 +86,14 @@ export default function Home() {
         {/* Header Section */}
         <View style={styles.header}>
           <Text style={styles.greetingText}>{greeting}</Text>
-          <View style={styles.todayTile}>
+          <TouchableOpacity 
+            style={styles.todayTile}
+            activeOpacity={0.8}
+            onPress={() => router.push('/calendar')}
+          >
             <Text style={styles.todayTileDay}>{todayTileInfo.day}</Text>
             <Text style={styles.todayTileDate}>{todayTileInfo.date}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Body Section - Flattened Entries List */}
