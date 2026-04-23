@@ -1,5 +1,5 @@
-import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { FlatList, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useJournals } from '../hooks/useJournals';
 
@@ -13,8 +13,14 @@ const moodEmojis: Record<string, string> = {
 };
 
 export default function Home() {
-  const { timeline, isLoading } = useJournals();
+  const { timeline, isLoading, refreshTimeline } = useJournals();
   const router = useRouter();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshTimeline();
+    }, [refreshTimeline])
+  );
 
   const [greeting, setGreeting] = useState('Good morning');
 

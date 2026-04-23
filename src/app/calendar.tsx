@@ -1,12 +1,18 @@
 import { View, StyleSheet, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import { useJournals } from '../hooks/useJournals';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 
 export default function CalendarScreen() {
   const router = useRouter();
-  const { timeline } = useJournals();
+  const { timeline, refreshTimeline } = useJournals();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshTimeline();
+    }, [refreshTimeline])
+  );
 
   const markedDates = useMemo(() => {
     const marks: Record<string, any> = {};
