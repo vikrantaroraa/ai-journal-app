@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView } from 'react-native';
 import { JournalEntry, Mood } from '../types';
 import { useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 
 const moodConfig: Record<Mood, { emoji: string, color: string }> = {
   Happy: { emoji: '🌿', color: '#E8F5E9' },
@@ -21,6 +22,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(entry.content);
+  const [editImages, setEditImages] = useState<string[]>(entry.images || []);
 
   const createdDate = new Date(entry.createdAt);
   const updatedDate = new Date(entry.updatedAt);
@@ -37,16 +39,38 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   
   const displayTime = isEdited ? `${timeString}  •  edited ${updatedDateString}, ${updatedTimeString}` : timeString;
 
+  const handleStartEdit = () => {
+    setEditContent(entry.content);
+    setEditImages(entry.images || []);
+    setIsEditing(true);
+  };
+
   const handleSave = () => {
     if (editContent.trim() && onUpdate) {
-      onUpdate(editContent.trim(), entry.images);
+      onUpdate(editContent.trim(), editImages.length > 0 ? editImages : undefined);
       setIsEditing(false);
     }
   };
 
   const handleCancel = () => {
     setEditContent(entry.content);
+    setEditImages(entry.images || []);
     setIsEditing(false);
+  };
+
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setEditImages(prev => [...prev, ...result.assets.map(a => a.uri)]);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setEditImages(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -58,7 +82,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
         </View>
 
         {!isEditing && onUpdate && (
-          <TouchableOpacity onPress={() => setIsEditing(true)}>
+          <TouchableOpacity onPress={handleStartEdit}>
             <Text style={styles.editBtn}>Edit</Text>
           </TouchableOpacity>
         )}
@@ -73,6 +97,23 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
             onChangeText={setEditContent}
             autoFocus
           />
+
+          {/* Image editing strip */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.editImageStrip}>
+            {editImages.map((uri, idx) => (
+              <View key={idx} style={styles.editImageWrapper}>
+                <Image source={{ uri }} style={styles.editImageThumb} />
+                <TouchableOpacity style={styles.removeImageBtn} onPress={() => handleRemoveImage(idx)}>
+                  <Text style={styles.removeImageText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            <TouchableOpacity style={styles.addImageBtn} onPress={handlePickImage}>
+              <Text style={styles.addImageIcon}>📸</Text>
+              <Text style={styles.addImageLabel}>Add</Text>
+            </TouchableOpacity>
+          </ScrollView>
+
           <View style={styles.actions}>
             {onDelete ? (
               <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
@@ -218,6 +259,54 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#EF4444', 
+  },
+  editImageStrip: {
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  editImageWrapper: {
+    marginRight: 10,
+    position: 'relative',
+  },
+  editImageThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 8,
+  },
+  removeImageBtn: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#EF4444',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeImageText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  addImageBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addImageIcon: {
+    fontSize: 18,
+  },
+  addImageLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    fontWeight: '600',
+    marginTop: 2,
   },
   imageScroll: {
     marginBottom: 16,

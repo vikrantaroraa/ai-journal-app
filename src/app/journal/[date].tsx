@@ -129,8 +129,25 @@ export default function DailyJournalScreen() {
           <EntryBlock 
             key={entry.id.toString()} 
             entry={entry} 
-            onUpdate={async (content, newImageUri) => {
-              await updateEntry(entry.id, entry.mood, content, newImageUri);
+            onUpdate={async (content, newImages) => {
+              // Copy any newly-picked images to permanent storage
+              let finalImages: string[] | undefined = undefined;
+              if (newImages && newImages.length > 0) {
+                finalImages = [];
+                for (const uri of newImages) {
+                  if (uri.startsWith(FileSystem.documentDirectory || '___')) {
+                    // Already persisted
+                    finalImages.push(uri);
+                  } else {
+                    const id = Date.now().toString() + Math.random().toString(36).substring(7);
+                    const ext = uri.split('.').pop() || 'jpg';
+                    const newPath = `${FileSystem.documentDirectory}img_${id}.${ext}`;
+                    await FileSystem.copyAsync({ from: uri, to: newPath });
+                    finalImages.push(newPath);
+                  }
+                }
+              }
+              await updateEntry(entry.id, entry.mood, content, finalImages);
               loadJournal();
             }}
             onDelete={async () => {
