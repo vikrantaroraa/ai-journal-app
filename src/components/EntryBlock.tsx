@@ -22,7 +22,20 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(entry.content);
 
-  const timeString = new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const createdDate = new Date(entry.createdAt);
+  const updatedDate = new Date(entry.updatedAt);
+  
+  // Enforce explicit 12-hour AM/PM format overriding any system locale defaults
+  const timeOptions: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+  const timeString = createdDate.toLocaleTimeString('en-US', timeOptions);
+  
+  // If the 'updatedAt' is more than 60 seconds after 'createdAt', we consider it edited.
+  const isEdited = (updatedDate.getTime() - createdDate.getTime()) > 60000;
+  
+  const updatedDateString = updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const updatedTimeString = updatedDate.toLocaleTimeString('en-US', timeOptions);
+  
+  const displayTime = isEdited ? `${timeString}  •  edited ${updatedDateString}, ${updatedTimeString}` : timeString;
 
   const handleSave = () => {
     if (editContent.trim() && onUpdate) {
@@ -84,7 +97,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
       ) : (
         <>
           <Text style={styles.content}>{entry.content}</Text>
-          <Text style={styles.time}>{timeString}</Text>
+          <Text style={styles.time}>{displayTime}</Text>
         </>
       )}
     </View>
