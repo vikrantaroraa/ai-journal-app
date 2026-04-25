@@ -34,6 +34,13 @@ export async function setupDatabase() {
     CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_journals_date ON daily_journals(date DESC);
     CREATE INDEX IF NOT EXISTS idx_entries_journal_created ON journal_entries(daily_journal_id, created_at DESC);
   `);
+  
+  // Feature 3 migration: Safely add image_uri if it doesn't exist
+  try {
+    await database.execAsync('ALTER TABLE journal_entries ADD COLUMN image_uri TEXT;');
+  } catch (e) {
+    // Ignore error natively thrown if the column is already present 
+  }
 }
 
 export async function getTimeline(): Promise<DailyJournal[]> {
@@ -56,6 +63,7 @@ export async function getTimeline(): Promise<DailyJournal[]> {
       dailyJournalId: row.daily_journal_id,
       mood: row.mood as Mood,
       content: row.content,
+      imageUri: row.image_uri,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     });
@@ -88,6 +96,7 @@ export async function getDailyJournal(dateString: string): Promise<DailyJournal 
     dailyJournalId: row.daily_journal_id,
     mood: row.mood as Mood,
     content: row.content,
+    imageUri: row.image_uri,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   }));
@@ -104,7 +113,7 @@ export async function addDailyJournal(date: string, title?: string): Promise<num
   const database = await getDatabase();
   const result = await database.runAsync(
     'INSERT INTO daily_journals (date, title) VALUES (?, ?)',
-    [date, title || null]
+    [date, title || '']
   );
   return result.lastInsertRowId;
 }
@@ -117,22 +126,22 @@ export async function updateDailyTitle(id: number, title: string): Promise<void>
   );
 }
 
-export async function addEntry(dailyJournalId: number, mood: Mood, content: string): Promise<number> {
+export async function addEntry(dailyJournalId: number, mood: Mood, content: string, imageUri?: string): Promise<number> {
   const database = await getDatabase();
   const now = new Date().toISOString();
   const result = await database.runAsync(
-    'INSERT INTO journal_entries (daily_journal_id, mood, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
-    [dailyJournalId, mood, content, now, now]
+    'INSERT INTO journal_entries (daily_journal_id, mood, content, image_uri, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+    [dailyJournalId, mood, content, imageUri || '', now, now]
   );
   return result.lastInsertRowId;
 }
 
-export async function updateEntry(id: number, mood: Mood, content: string): Promise<void> {
+export async function updateEntry(id: number, mood: Mood, content: string, imageUri?: string): Promise<void> {
   const database = await getDatabase();
   const now = new Date().toISOString();
   await database.runAsync(
-    'UPDATE journal_entries SET mood = ?, content = ?, updated_at = ? WHERE id = ?',
-    [mood, content, now, id]
+    'UPDATE journal_entries SET mood = ?, content = ?, image_uri = ?, updated_at = ? WHERE id = ?',
+    [mood, content, imageUri || '', now, id]
   );
 }
 

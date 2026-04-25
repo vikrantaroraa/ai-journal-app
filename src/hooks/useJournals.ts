@@ -47,13 +47,14 @@ export function useJournals() {
     ));
   };
 
-  const addEntry = async (dailyJournalId: number, mood: Mood, content: string) => {
-    const newEntryId = await db.addEntry(dailyJournalId, mood, content);
+  const addEntry = async (dailyJournalId: number, mood: Mood, content: string, imageUri?: string) => {
+    const newEntryId = await db.addEntry(dailyJournalId, mood, content, imageUri);
     const newEntry: JournalEntry = {
       id: newEntryId,
       dailyJournalId,
       mood,
       content,
+      imageUri,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -70,14 +71,14 @@ export function useJournals() {
     }));
   };
 
-  const updateEntry = async (entryId: number, mood: Mood, content: string) => {
-    await db.updateEntry(entryId, mood, content);
+  const updateEntry = async (entryId: number, mood: Mood, content: string, imageUri?: string) => {
+    await db.updateEntry(entryId, mood, content, imageUri);
     
     setTimeline(prev => prev.map(journal => ({
       ...journal,
       entries: journal.entries.map(entry => 
         entry.id === entryId 
-          ? { ...entry, mood, content, updatedAt: new Date() } 
+          ? { ...entry, mood, content, imageUri, updatedAt: new Date() } 
           : entry
       )
     })));

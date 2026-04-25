@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image } from 'react-native';
 import { JournalEntry, Mood } from '../types';
 import { useState } from 'react';
 
@@ -12,7 +12,7 @@ const moodConfig: Record<Mood, { emoji: string, color: string }> = {
 
 interface EntryBlockProps {
   entry: JournalEntry;
-  onUpdate?: (newContent: string) => void;
+  onUpdate?: (newContent: string, newImageUri?: string) => void;
   onDelete?: () => void;
 }
 
@@ -39,7 +39,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
 
   const handleSave = () => {
     if (editContent.trim() && onUpdate) {
-      onUpdate(editContent.trim());
+      onUpdate(editContent.trim(), entry.imageUri);
       setIsEditing(false);
     }
   };
@@ -97,6 +97,13 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
       ) : (
         <>
           <Text style={styles.content}>{entry.content}</Text>
+          {entry.imageUri && (
+            <Image 
+              source={{ uri: entry.imageUri }} 
+              style={styles.attachedImage} 
+              resizeMode="cover" 
+            />
+          )}
           <Text style={styles.time}>{displayTime}</Text>
         </>
       )}
@@ -206,5 +213,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#EF4444', 
+  },
+  attachedImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: 12,
+    marginBottom: 16,
+    backgroundColor: '#F3F4F6',
   }
 });

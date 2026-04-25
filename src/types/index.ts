@@ -5,6 +5,7 @@ export interface JournalEntry {
   dailyJournalId: number;
   mood: Mood;
   content: string;
+  imageUri?: string;
   createdAt: Date;
   updatedAt: Date;
 }

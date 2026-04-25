@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useJournals } from '../../hooks/useJournals';
 import { DailyJournal, Mood } from '../../types';
@@ -24,6 +26,7 @@ export default function DailyJournalScreen() {
   const [isAdding, setIsAdding] = useState(false);
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
   const [entryContent, setEntryContent] = useState('');
+  const [composerImageUri, setComposerImageUri] = useState<string | null>(null);
   const contentInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
@@ -54,15 +57,35 @@ export default function DailyJournalScreen() {
     }, 100);
   };
 
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      setComposerImageUri(result.assets[0].uri);
+    }
+  };
+
   const handleSaveEntry = async () => {
     if (!journal || !selectedMood || !entryContent.trim()) return;
     
-    await addEntry(journal.id, selectedMood, entryContent.trim());
+    let permanentUri: string | undefined = undefined;
+    if (composerImageUri) {
+      const id = Date.now().toString();
+      const ext = composerImageUri.split('.').pop() || 'jpg';
+      const newPath = `${FileSystem.documentDirectory}img_${id}.${ext}`;
+      await FileSystem.copyAsync({ from: composerImageUri, to: newPath });
+      permanentUri = newPath;
+    }
+    
+    await addEntry(journal.id, selectedMood, entryContent.trim(), permanentUri);
     
     // Reset internal state
     setIsAdding(false);
     setSelectedMood(null);
     setEntryContent('');
+    setComposerImageUri(null);
     
     // Reload local data to reflect newly added entry
     loadJournal();
@@ -99,8 +122,8 @@ export default function DailyJournalScreen() {
           <EntryBlock 
             key={entry.id.toString()} 
             entry={entry} 
-            onUpdate={async (content) => {
-              await updateEntry(entry.id, entry.mood, content);
+            onUpdate={async (content, newImageUri) => {
+              await updateEntry(entry.id, entry.mood, content, newImageUri);
               loadJournal();
             }}
             onDelete={async () => {
@@ -149,17 +172,31 @@ export default function DailyJournalScreen() {
                   onChangeText={setEntryContent}
                 />
 
+                {composerImageUri && (
+                  <View style={styles.previewContainer}>
+                    <Image source={{ uri: composerImageUri }} style={styles.previewImage} />
+                    <TouchableOpacity style={styles.clearPreviewBtn} onPress={() => setComposerImageUri(null)}>
+                      <Text style={styles.clearPreviewText}>Clear</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
                 <View style={styles.composerActions}>
-                  <TouchableOpacity onPress={() => { setIsAdding(false); setSelectedMood(null); setEntryContent(''); }}>
-                    <Text style={styles.cancelText}>Cancel</Text>
+                  <TouchableOpacity style={styles.photoBtn} onPress={handlePickImage} >
+                    <Text style={styles.photoBtnText}>📸 Photo</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.saveBtn, !entryContent.trim() && { opacity: 0.5 }]} 
-                    onPress={handleSaveEntry}
-                    disabled={!entryContent.trim()}
-                  >
-                    <Text style={styles.saveBtnText}>Save Entry</Text>
-                  </TouchableOpacity>
+                  <View style={styles.saveActions}>
+                    <TouchableOpacity onPress={() => { setIsAdding(false); setSelectedMood(null); setEntryContent(''); setComposerImageUri(null); }}>
+                      <Text style={styles.cancelText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.saveBtn, !entryContent.trim() && { opacity: 0.5 }]} 
+                      onPress={handleSaveEntry}
+                      disabled={!entryContent.trim()}
+                    >
+                      <Text style={styles.saveBtnText}>Save Entry</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             )}
@@ -273,12 +310,48 @@ const styles = StyleSheet.create({
     color: '#374151',
     minHeight: 120,
   },
+  previewContainer: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  previewImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  clearPreviewBtn: {
+    padding: 6,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+  },
+  clearPreviewText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
   composerActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 20,
+  },
+  saveActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 16,
+  },
+  photoBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+  },
+  photoBtnText: {
+    fontSize: 14,
+    color: '#4B5563',
+    fontWeight: '500',
   },
   cancelText: {
     color: '#6B7280',
