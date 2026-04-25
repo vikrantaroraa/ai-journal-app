@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { JournalEntry, Mood } from '../types';
+import { useState } from 'react';
 
 const moodConfig: Record<Mood, { emoji: string, color: string }> = {
   Happy: { emoji: '🌿', color: '#E8F5E9' },
@@ -9,20 +10,83 @@ const moodConfig: Record<Mood, { emoji: string, color: string }> = {
   Tired: { emoji: '🌙', color: '#FFF3E0' },
 };
 
-export default function EntryBlock({ entry }: { entry: JournalEntry }) {
-  const config = moodConfig[entry.mood];
+interface EntryBlockProps {
+  entry: JournalEntry;
+  onUpdate?: (newContent: string) => void;
+  onDelete?: () => void;
+}
+
+export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProps) {
+  const config = moodConfig[entry.mood] || { emoji: '😐', color: '#F3F4F6' };
   
-  // Format simple time, e.g. 10:00 AM
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(entry.content);
+
   const timeString = new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const handleSave = () => {
+    if (editContent.trim() && onUpdate) {
+      onUpdate(editContent.trim());
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditContent(entry.content);
+    setIsEditing(false);
+  };
 
   return (
     <View style={styles.container}>
-      <View style={[styles.badge, { backgroundColor: config.color }]}>
-        <Text style={styles.badgeEmoji}>{config.emoji}</Text>
-        <Text style={styles.badgeText}>{entry.mood}</Text>
+      <View style={styles.header}>
+        <View style={[styles.badge, { backgroundColor: config.color }]}>
+          <Text style={styles.badgeEmoji}>{config.emoji}</Text>
+          <Text style={styles.badgeText}>{entry.mood}</Text>
+        </View>
+
+        {!isEditing && onUpdate && (
+          <TouchableOpacity onPress={() => setIsEditing(true)}>
+            <Text style={styles.editBtn}>Edit</Text>
+          </TouchableOpacity>
+        )}
       </View>
-      <Text style={styles.content}>{entry.content}</Text>
-      <Text style={styles.time}>{timeString}</Text>
+
+      {isEditing ? (
+        <View style={styles.editor}>
+          <TextInput 
+            style={styles.textInput}
+            multiline
+            value={editContent}
+            onChangeText={setEditContent}
+            autoFocus
+          />
+          <View style={styles.actions}>
+            {onDelete ? (
+              <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
+                <Text style={styles.deleteText}>Delete</Text>
+              </TouchableOpacity>
+            ) : <View />}
+            
+            <View style={styles.saveActions}>
+              <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.saveBtn, !editContent.trim() && { opacity: 0.5 }]} 
+                onPress={handleSave}
+                disabled={!editContent.trim()}
+              >
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      ) : (
+        <>
+          <Text style={styles.content}>{entry.content}</Text>
+          <Text style={styles.time}>{timeString}</Text>
+        </>
+      )}
     </View>
   );
 }
@@ -38,14 +102,18 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
   badge: {
-    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 20,
-    marginBottom: 16,
   },
   badgeEmoji: {
     fontSize: 14,
@@ -55,6 +123,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#4B5563',
+  },
+  editBtn: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    padding: 4,
   },
   content: {
     fontSize: 17,
@@ -66,5 +140,58 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9CA3AF',
     fontWeight: '500',
+  },
+  editor: {
+    marginTop: 8,
+  },
+  textInput: {
+    fontSize: 17,
+    lineHeight: 28,
+    color: '#374151',
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 12,
+    minHeight: 120,
+    textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  saveActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  cancelBtn: {
+    padding: 8,
+  },
+  cancelText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  saveBtn: {
+    backgroundColor: '#374151',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+  },
+  saveText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  deleteBtn: {
+    padding: 8,
+  },
+  deleteText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#EF4444', 
   }
 });

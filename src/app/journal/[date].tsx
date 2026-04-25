@@ -15,7 +15,7 @@ const MOOD_OPTIONS: { value: Mood, emoji: string }[] = [
 
 export default function DailyJournalScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
-  const { createOrGetDailyJournal, updateDailyTitle, addEntry } = useJournals();
+  const { createOrGetDailyJournal, updateDailyTitle, addEntry, updateEntry, deleteEntry } = useJournals();
   const [journal, setJournal] = useState<DailyJournal | null>(null);
   
   const [titleInput, setTitleInput] = useState('');
@@ -96,7 +96,18 @@ export default function DailyJournalScreen() {
         </View>
 
         {journal?.entries.map(entry => (
-          <EntryBlock key={entry.id.toString()} entry={entry} />
+          <EntryBlock 
+            key={entry.id.toString()} 
+            entry={entry} 
+            onUpdate={async (content) => {
+              await updateEntry(entry.id, entry.mood, content);
+              loadJournal();
+            }}
+            onDelete={async () => {
+              await deleteEntry(entry.id);
+              loadJournal();
+            }}
+          />
         ))}
 
         {!isAdding ? (
