@@ -3,9 +3,27 @@ import { DailyJournal, JournalEntry, Mood } from '../types';
 
 let db: SQLite.SQLiteDatabase | null = null;
 
+function parseImages(imageUriCol: any): string[] | undefined {
+  if (!imageUriCol || imageUriCol === '') return undefined;
+  try {
+    const parsed = JSON.parse(imageUriCol);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // If it fails to parse, it means it's a legacy standard un-arrayed string 
+    if (typeof imageUriCol === 'string') return [imageUriCol];
+  }
+  return undefined;
+}
+
+// Escape single quotes for safe use in execAsync raw SQL
+function esc(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
 export async function getDatabase() {
   if (db) return db;
-  db = await SQLite.openDatabaseAsync('journal.db');
+  // useNewConnection: true avoids NullPointerException from shared native handles
+  db = await SQLite.openDatabaseAsync('journal.db', { useNewConnection: true });
   return db;
 }
 
@@ -36,10 +54,15 @@ export async function setupDatabase() {
   `);
   
   // Feature 3 migration: Safely add image_uri if it doesn't exist
-  try {
-    await database.execAsync('ALTER TABLE journal_entries ADD COLUMN image_uri TEXT;');
-  } catch (e) {
-    // Ignore error natively thrown if the column is already present 
+  const tableInfo = await database.getAllAsync<any>('PRAGMA table_info(journal_entries)');
+  const hasImageUri = tableInfo.some(col => col.name === 'image_uri');
+  
+  if (!hasImageUri) {
+    try {
+      await database.execAsync('ALTER TABLE journal_entries ADD COLUMN image_uri TEXT;');
+    } catch (e) {
+      console.log("Migration skipped (column likely exists):", e);
+    }
   }
 }
 
@@ -63,7 +86,7 @@ export async function getTimeline(): Promise<DailyJournal[]> {
       dailyJournalId: row.daily_journal_id,
       mood: row.mood as Mood,
       content: row.content,
-      imageUri: row.image_uri,
+      images: parseImages(row.image_uri),
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     });
@@ -81,14 +104,14 @@ export async function getDailyJournal(dateString: string): Promise<DailyJournal 
   const database = await getDatabase();
   const rawJournal = await database.getFirstAsync<any>(
     'SELECT * FROM daily_journals WHERE date = ?',
-    [dateString]
+    dateString
   );
 
   if (!rawJournal) return null;
 
   const rawEntries = await database.getAllAsync<any>(
     'SELECT * FROM journal_entries WHERE daily_journal_id = ? ORDER BY created_at ASC',
-    [rawJournal.id]
+    rawJournal.id
   );
 
   const entries: JournalEntry[] = rawEntries.map(row => ({
@@ -96,7 +119,7 @@ export async function getDailyJournal(dateString: string): Promise<DailyJournal 
     dailyJournalId: row.daily_journal_id,
     mood: row.mood as Mood,
     content: row.content,
-    imageUri: row.image_uri,
+    images: parseImages(row.image_uri),
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   }));
@@ -111,41 +134,41 @@ export async function getDailyJournal(dateString: string): Promise<DailyJournal 
 
 export async function addDailyJournal(date: string, title?: string): Promise<number> {
   const database = await getDatabase();
-  const result = await database.runAsync(
-    'INSERT INTO daily_journals (date, title) VALUES (?, ?)',
-    [date, title || '']
+  await database.execAsync(
+    `INSERT INTO daily_journals (date, title) VALUES ('${esc(date)}', '${esc(title || '')}')`
   );
-  return result.lastInsertRowId;
+  const row = await database.getFirstAsync<any>('SELECT last_insert_rowid() as id');
+  return row.id;
 }
 
 export async function updateDailyTitle(id: number, title: string): Promise<void> {
   const database = await getDatabase();
-  await database.runAsync(
-    'UPDATE daily_journals SET title = ? WHERE id = ?',
-    [title, id]
+  await database.execAsync(
+    `UPDATE daily_journals SET title = '${esc(title)}' WHERE id = ${id}`
   );
 }
 
-export async function addEntry(dailyJournalId: number, mood: Mood, content: string, imageUri?: string): Promise<number> {
+export async function addEntry(dailyJournalId: number, mood: Mood, content: string, images?: string[]): Promise<number> {
   const database = await getDatabase();
   const now = new Date().toISOString();
-  const result = await database.runAsync(
-    'INSERT INTO journal_entries (daily_journal_id, mood, content, image_uri, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-    [dailyJournalId, mood, content, imageUri || '', now, now]
+  const dbImageStr = images && images.length > 0 ? JSON.stringify(images) : '';
+  await database.execAsync(
+    `INSERT INTO journal_entries (daily_journal_id, mood, content, image_uri, created_at, updated_at) VALUES (${dailyJournalId}, '${esc(mood)}', '${esc(content)}', '${esc(dbImageStr)}', '${esc(now)}', '${esc(now)}')`
   );
-  return result.lastInsertRowId;
+  const row = await database.getFirstAsync<any>('SELECT last_insert_rowid() as id');
+  return row.id;
 }
 
-export async function updateEntry(id: number, mood: Mood, content: string, imageUri?: string): Promise<void> {
+export async function updateEntry(id: number, mood: Mood, content: string, images?: string[]): Promise<void> {
   const database = await getDatabase();
   const now = new Date().toISOString();
-  await database.runAsync(
-    'UPDATE journal_entries SET mood = ?, content = ?, image_uri = ?, updated_at = ? WHERE id = ?',
-    [mood, content, imageUri || '', now, id]
+  const dbImageStr = images && images.length > 0 ? JSON.stringify(images) : '';
+  await database.execAsync(
+    `UPDATE journal_entries SET mood = '${esc(mood)}', content = '${esc(content)}', image_uri = '${esc(dbImageStr)}', updated_at = '${esc(now)}' WHERE id = ${id}`
   );
 }
 
 export async function deleteEntry(id: number): Promise<void> {
   const database = await getDatabase();
-  await database.runAsync('DELETE FROM journal_entries WHERE id = ?', [id]);
+  await database.execAsync(`DELETE FROM journal_entries WHERE id = ${id}`);
 }

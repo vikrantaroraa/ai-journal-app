@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView } from 'react-native';
 import { JournalEntry, Mood } from '../types';
 import { useState } from 'react';
 
@@ -12,7 +12,7 @@ const moodConfig: Record<Mood, { emoji: string, color: string }> = {
 
 interface EntryBlockProps {
   entry: JournalEntry;
-  onUpdate?: (newContent: string, newImageUri?: string) => void;
+  onUpdate?: (newContent: string, newImages?: string[]) => void;
   onDelete?: () => void;
 }
 
@@ -39,7 +39,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
 
   const handleSave = () => {
     if (editContent.trim() && onUpdate) {
-      onUpdate(editContent.trim(), entry.imageUri);
+      onUpdate(editContent.trim(), entry.images);
       setIsEditing(false);
     }
   };
@@ -97,12 +97,17 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
       ) : (
         <>
           <Text style={styles.content}>{entry.content}</Text>
-          {entry.imageUri && (
-            <Image 
-              source={{ uri: entry.imageUri }} 
-              style={styles.attachedImage} 
-              resizeMode="cover" 
-            />
+          {entry.images && entry.images.length > 0 && (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageScroll}>
+              {entry.images.map((uri, idx) => (
+                <Image 
+                  key={idx}
+                  source={{ uri }} 
+                  style={styles.attachedImageBlock} 
+                  resizeMode="cover" 
+                />
+              ))}
+            </ScrollView>
           )}
           <Text style={styles.time}>{displayTime}</Text>
         </>
@@ -214,11 +219,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#EF4444', 
   },
-  attachedImage: {
-    width: '100%',
-    height: 220,
-    borderRadius: 12,
+  imageScroll: {
     marginBottom: 16,
+  },
+  attachedImageBlock: {
+    width: 250,
+    height: 200,
+    borderRadius: 12,
+    marginRight: 12,
     backgroundColor: '#F3F4F6',
   }
 });
