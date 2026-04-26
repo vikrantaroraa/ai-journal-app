@@ -1,9 +1,9 @@
+import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 import * as ImagePicker from 'expo-image-picker';
-import { ImagePlus } from 'lucide-react-native';
+import { ImagePlus, SquarePen, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { JournalEntry, Mood } from '../types';
-import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 
 const moodConfig: Record<Mood, { emoji: string, color: string }> = {
   Happy: { emoji: '🌿', color: '#E8F5E9' },
@@ -93,8 +93,8 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
         </View>
 
         {!isEditing && onUpdate && (
-          <TouchableOpacity onPress={handleStartEdit}>
-            <Text style={styles.editBtn}>Edit</Text>
+          <TouchableOpacity onPress={handleStartEdit} style={styles.editBtn}>
+            <SquarePen size={16} color="#9CA3AF" />
           </TouchableOpacity>
         )}
       </View>
@@ -127,7 +127,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
           <View style={styles.actions}>
             {onDelete ? (
               <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
-                <Text style={styles.deleteText}>Delete</Text>
+                <Trash2 size={16} color="#EF4444" />
               </TouchableOpacity>
             ) : <View />}
 
@@ -262,10 +262,9 @@ const styles = StyleSheet.create({
     color: '#4B5563',
   },
   editBtn: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#9CA3AF',
-    padding: 4,
+    padding: 8,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
   },
   content: {
     fontSize: 17,
@@ -324,7 +323,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   deleteBtn: {
-    padding: 8,
+    padding: 10,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
   },
   deleteText: {
     fontSize: 15,
