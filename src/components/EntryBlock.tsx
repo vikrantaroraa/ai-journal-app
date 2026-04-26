@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { ImagePlus } from 'lucide-react-native';
-import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Dimensions, Image, Modal, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { JournalEntry, Mood } from '../types';
 
 const moodConfig: Record<Mood, { emoji: string, color: string }> = {
@@ -24,6 +24,9 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(entry.content);
   const [editImages, setEditImages] = useState<string[]>(entry.images || []);
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
+  const viewerScrollRef = useRef<ScrollView>(null);
 
   const createdDate = new Date(entry.createdAt);
   const updatedDate = new Date(entry.updatedAt);
@@ -73,6 +76,22 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   const handleRemoveImage = (index: number) => {
     setEditImages(prev => prev.filter((_, i) => i !== index));
   };
+
+  const openViewer = (index: number) => {
+    setViewerIndex(index);
+    setViewerVisible(true);
+    // Scroll to the correct page after modal opens
+    setTimeout(() => {
+      viewerScrollRef.current?.scrollTo({ x: index * screenWidth, animated: false });
+    }, 50);
+  };
+
+  const handleViewerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const page = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+    if (page !== viewerIndex) setViewerIndex(page);
+  };
+
+  const allImages = entry.images || [];
 
   return (
     <View style={styles.container}>
@@ -141,21 +160,66 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
           {entry.images && entry.images.length > 0 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageScroll}>
               {entry.images.map((uri, idx) => (
-                <Image
-                  key={idx}
-                  source={{ uri }}
-                  style={styles.attachedImageBlock}
-                  resizeMode="cover"
-                />
+                <TouchableOpacity key={idx} activeOpacity={0.9} onPress={() => openViewer(idx)}>
+                  <Image
+                    source={{ uri }}
+                    style={styles.attachedImageBlock}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
               ))}
             </ScrollView>
           )}
           <Text style={styles.time}>{displayTime}</Text>
         </>
       )}
+      {/* Fullscreen image viewer overlay */}
+      <Modal visible={viewerVisible} transparent animationType="fade">
+        <View style={styles.viewerBackdrop}>
+          <TouchableOpacity style={styles.viewerCloseBtn} onPress={() => setViewerVisible(false)}>
+            <Text style={styles.viewerCloseText}>✕</Text>
+          </TouchableOpacity>
+
+          {allImages.length > 1 && (
+            <View style={styles.viewerCounter}>
+              <Text style={styles.viewerCounterText}>{viewerIndex + 1} / {allImages.length}</Text>
+            </View>
+          )}
+
+          <ScrollView
+            ref={viewerScrollRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={handleViewerScroll}
+            style={styles.viewerScroll}
+          >
+            {allImages.map((uri, idx) => (
+              <ScrollView
+                key={idx}
+                maximumZoomScale={5}
+                minimumZoomScale={1}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.viewerZoomContainer}
+                style={{ width: screenWidth }}
+              >
+                <Image
+                  source={{ uri }}
+                  style={styles.viewerImage}
+                  resizeMode="contain"
+                />
+              </ScrollView>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
+
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
@@ -308,5 +372,52 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 12,
     backgroundColor: '#F3F4F6',
-  }
+  },
+  viewerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewerCloseBtn: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewerCloseText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  viewerCounter: {
+    position: 'absolute',
+    top: 56,
+    left: 20,
+    zIndex: 10,
+  },
+  viewerCounterText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  viewerScroll: {
+    flex: 1,
+  },
+  viewerZoomContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: screenWidth,
+    height: screenHeight,
+  },
+  viewerImage: {
+    width: screenWidth,
+    height: screenHeight * 0.75,
+  },
 });
