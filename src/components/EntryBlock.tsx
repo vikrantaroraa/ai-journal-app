@@ -2,7 +2,7 @@ import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-vi
 import * as ImagePicker from 'expo-image-picker';
 import { ImagePlus, SquarePen, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
-import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { JournalEntry, Mood } from '../types';
 
 const moodConfig: Record<Mood, { emoji: string, color: string }> = {
@@ -126,7 +126,16 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
 
           <View style={styles.actions}>
             {onDelete ? (
-              <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
+              <TouchableOpacity onPress={() => {
+                Alert.alert(
+                  'Delete Entry',
+                  'Are you sure you want to delete this entry? This cannot be undone.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Delete', style: 'destructive', onPress: onDelete },
+                  ]
+                );
+              }} style={styles.deleteBtn}>
                 <Trash2 size={16} color="#EF4444" />
               </TouchableOpacity>
             ) : <View />}
