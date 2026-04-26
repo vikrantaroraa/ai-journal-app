@@ -148,7 +148,16 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
       ) : (
         <>
           <Text style={styles.content}>{entry.content}</Text>
-          {entry.images && entry.images.length > 0 && (
+          {entry.images && entry.images.length === 1 && (
+            <TouchableOpacity activeOpacity={0.9} onPress={() => openViewer(0)}>
+              <Image
+                source={{ uri: entry.images[0] }}
+                style={styles.singleImage}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          )}
+          {entry.images && entry.images.length > 1 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageScroll}>
               {entry.images.map((uri, idx) => (
                 <TouchableOpacity key={idx} activeOpacity={0.9} onPress={() => openViewer(idx)}>
@@ -360,6 +369,13 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  singleImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: 12,
+    marginBottom: 16,
+    backgroundColor: '#F3F4F6',
   },
   imageScroll: {
     marginBottom: 16,
