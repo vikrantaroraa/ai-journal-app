@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import { ImagePlus } from 'lucide-react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useJournals } from '../../hooks/useJournals';
 import { DailyJournal, Mood } from '../../types';
@@ -211,7 +212,7 @@ export default function DailyJournalScreen() {
 
                 <View style={styles.composerActions}>
                   <TouchableOpacity style={styles.photoBtn} onPress={handlePickImage} >
-                    <Text style={styles.photoBtnText}>📸 Photo</Text>
+                    <ImagePlus size={20} color="#4B5563" />
                   </TouchableOpacity>
                   <View style={styles.saveActions}>
                     <TouchableOpacity onPress={() => { setIsAdding(false); setSelectedMood(null); setEntryContent(''); setComposerImages([]); }}>
