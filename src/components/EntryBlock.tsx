@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView } from 'react-native';
-import { JournalEntry, Mood } from '../types';
-import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import { ImagePlus } from 'lucide-react-native';
+import { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { JournalEntry, Mood } from '../types';
 
 const moodConfig: Record<Mood, { emoji: string, color: string }> = {
   Happy: { emoji: '🌿', color: '#E8F5E9' },
@@ -19,24 +20,24 @@ interface EntryBlockProps {
 
 export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProps) {
   const config = moodConfig[entry.mood] || { emoji: '😐', color: '#F3F4F6' };
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(entry.content);
   const [editImages, setEditImages] = useState<string[]>(entry.images || []);
 
   const createdDate = new Date(entry.createdAt);
   const updatedDate = new Date(entry.updatedAt);
-  
+
   // Enforce explicit 12-hour AM/PM format overriding any system locale defaults
   const timeOptions: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
   const timeString = createdDate.toLocaleTimeString('en-US', timeOptions);
-  
+
   // If the 'updatedAt' is more than 60 seconds after 'createdAt', we consider it edited.
   const isEdited = (updatedDate.getTime() - createdDate.getTime()) > 60000;
-  
+
   const updatedDateString = updatedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const updatedTimeString = updatedDate.toLocaleTimeString('en-US', timeOptions);
-  
+
   const displayTime = isEdited ? `${timeString}  •  edited ${updatedDateString}, ${updatedTimeString}` : timeString;
 
   const handleStartEdit = () => {
@@ -90,7 +91,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
 
       {isEditing ? (
         <View style={styles.editor}>
-          <TextInput 
+          <TextInput
             style={styles.textInput}
             multiline
             value={editContent}
@@ -109,8 +110,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
               </View>
             ))}
             <TouchableOpacity style={styles.addImageBtn} onPress={handlePickImage}>
-              <Text style={styles.addImageIcon}>📸</Text>
-              <Text style={styles.addImageLabel}>Add</Text>
+              <ImagePlus size={22} color="#6B7280" />
             </TouchableOpacity>
           </ScrollView>
 
@@ -120,13 +120,13 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
                 <Text style={styles.deleteText}>Delete</Text>
               </TouchableOpacity>
             ) : <View />}
-            
+
             <View style={styles.saveActions}>
               <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}>
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.saveBtn, !editContent.trim() && { opacity: 0.5 }]} 
+              <TouchableOpacity
+                style={[styles.saveBtn, !editContent.trim() && { opacity: 0.5 }]}
                 onPress={handleSave}
                 disabled={!editContent.trim()}
               >
@@ -141,11 +141,11 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
           {entry.images && entry.images.length > 0 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageScroll}>
               {entry.images.map((uri, idx) => (
-                <Image 
+                <Image
                   key={idx}
-                  source={{ uri }} 
-                  style={styles.attachedImageBlock} 
-                  resizeMode="cover" 
+                  source={{ uri }}
+                  style={styles.attachedImageBlock}
+                  resizeMode="cover"
                 />
               ))}
             </ScrollView>
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#EF4444', 
+    color: '#EF4444',
   },
   editImageStrip: {
     marginTop: 12,
@@ -298,15 +298,6 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  addImageIcon: {
-    fontSize: 18,
-  },
-  addImageLabel: {
-    fontSize: 11,
-    color: '#6B7280',
-    fontWeight: '600',
-    marginTop: 2,
   },
   imageScroll: {
     marginBottom: 16,
