@@ -1,8 +1,9 @@
 import * as ImagePicker from 'expo-image-picker';
 import { ImagePlus } from 'lucide-react-native';
-import { useRef, useState } from 'react';
-import { Dimensions, Image, Modal, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { JournalEntry, Mood } from '../types';
+import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 
 const moodConfig: Record<Mood, { emoji: string, color: string }> = {
   Happy: { emoji: '🌿', color: '#E8F5E9' },
@@ -26,7 +27,6 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   const [editImages, setEditImages] = useState<string[]>(entry.images || []);
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
-  const viewerScrollRef = useRef<ScrollView>(null);
 
   const createdDate = new Date(entry.createdAt);
   const updatedDate = new Date(entry.updatedAt);
@@ -80,15 +80,6 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   const openViewer = (index: number) => {
     setViewerIndex(index);
     setViewerVisible(true);
-    // Scroll to the correct page after modal opens
-    setTimeout(() => {
-      viewerScrollRef.current?.scrollTo({ x: index * screenWidth, animated: false });
-    }, 50);
-  };
-
-  const handleViewerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const page = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
-    if (page !== viewerIndex) setViewerIndex(page);
   };
 
   const allImages = entry.images || [];
@@ -186,32 +177,39 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
             </View>
           )}
 
-          <ScrollView
-            ref={viewerScrollRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={handleViewerScroll}
-            style={styles.viewerScroll}
+          <ReactNativeZoomableView
+            key={viewerIndex}
+            maxZoom={5}
+            minZoom={1}
+            zoomStep={0.5}
+            initialZoom={1}
+            bindToBorders
+            style={styles.viewerZoomContainer}
           >
-            {allImages.map((uri, idx) => (
-              <ScrollView
-                key={idx}
-                maximumZoomScale={5}
-                minimumZoomScale={1}
-                showsVerticalScrollIndicator={false}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.viewerZoomContainer}
-                style={{ width: screenWidth }}
-              >
-                <Image
-                  source={{ uri }}
-                  style={styles.viewerImage}
-                  resizeMode="contain"
-                />
-              </ScrollView>
-            ))}
-          </ScrollView>
+            <Image
+              source={{ uri: allImages[viewerIndex] }}
+              style={styles.viewerImage}
+              resizeMode="contain"
+            />
+          </ReactNativeZoomableView>
+
+          {/* Navigation arrows */}
+          {allImages.length > 1 && viewerIndex > 0 && (
+            <TouchableOpacity
+              style={[styles.viewerArrow, styles.viewerArrowLeft]}
+              onPress={() => setViewerIndex(prev => prev - 1)}
+            >
+              <Text style={styles.viewerArrowText}>‹</Text>
+            </TouchableOpacity>
+          )}
+          {allImages.length > 1 && viewerIndex < allImages.length - 1 && (
+            <TouchableOpacity
+              style={[styles.viewerArrow, styles.viewerArrowRight]}
+              onPress={() => setViewerIndex(prev => prev + 1)}
+            >
+              <Text style={styles.viewerArrowText}>›</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Modal>
     </View>
@@ -411,13 +409,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   viewerZoomContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    width: screenWidth,
-    height: screenHeight,
   },
   viewerImage: {
     width: screenWidth,
     height: screenHeight * 0.75,
+  },
+  viewerArrow: {
+    position: 'absolute',
+    top: '45%',
+    zIndex: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewerArrowLeft: {
+    left: 12,
+  },
+  viewerArrowRight: {
+    right: 12,
+  },
+  viewerArrowText: {
+    color: '#FFF',
+    fontSize: 28,
+    fontWeight: '300',
+    marginTop: -2,
   },
 });
