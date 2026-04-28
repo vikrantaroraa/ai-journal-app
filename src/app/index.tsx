@@ -1,6 +1,6 @@
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { FlatList, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useJournals } from '../hooks/useJournals';
 
 // Mood emoji map
@@ -66,6 +66,8 @@ export default function Home() {
     const dayNumeric = dateObj.getDate().toString();
     const monthShort = dateObj.toLocaleDateString('en-US', { month: 'short' });
     const emoji = moodEmojis[item.mood] || '😐';
+    const hasImages = item.images && item.images.length > 0;
+    const maxLines = hasImages ? 2 : 3;
 
     return (
       <TouchableOpacity
@@ -80,7 +82,12 @@ export default function Home() {
           </View>
           <Text style={styles.entryEmoji}>{emoji}</Text>
         </View>
-        <Text style={styles.entryContent}>{item.content}</Text>
+        <View style={styles.entryBody}>
+          <Text style={[styles.entryContent, { flex: 1 }]} numberOfLines={maxLines}>{item.content}</Text>
+          {hasImages && (
+            <Image source={{ uri: item.images[0] }} style={styles.entryThumb} />
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -201,10 +208,21 @@ const styles = StyleSheet.create({
   entryEmoji: {
     fontSize: 32,
   },
+  entryBody: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
   entryContent: {
     fontSize: 16,
     lineHeight: 24,
     color: '#334155',
+  },
+  entryThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: '#CBD5E1',
   },
   emptyText: {
     fontSize: 16,
