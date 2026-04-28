@@ -1,15 +1,20 @@
-import { useRouter, useFocusEffect } from 'expo-router';
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useJournals } from '../hooks/useJournals';
 
 // Mood emoji map
 const moodEmojis: Record<string, string> = {
-  Happy: '🌿',
-  Calm: '✨',
-  Sad: '☁️',
-  Excited: '🌸',
-  Tired: '🌙',
+  Happy: '😊',
+  Calm: '😌',
+  Sad: '😢',
+  Excited: '🤩',
+  Tired: '😴',
+  Grateful: '🙏',
+  Anxious: '😰',
+  Angry: '😡',
+  Productive: '🔥',
+  Inspired: '💡',
 };
 
 export default function Home() {
@@ -99,7 +104,7 @@ export default function Home() {
         {/* Header Section */}
         <View style={styles.header}>
           <Text style={styles.greetingText}>{greeting}</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.todayTile}
             activeOpacity={0.8}
             onPress={() => router.push('/calendar')}

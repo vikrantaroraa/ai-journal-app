@@ -1,28 +1,33 @@
-import { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as ImagePicker from 'expo-image-picker';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { ImagePlus } from 'lucide-react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import EntryBlock from '../../components/EntryBlock';
 import { useJournals } from '../../hooks/useJournals';
 import { DailyJournal, Mood } from '../../types';
-import EntryBlock from '../../components/EntryBlock';
 
 const MOOD_OPTIONS: { value: Mood, emoji: string }[] = [
-  { value: 'Happy', emoji: '🌿' },
-  { value: 'Calm', emoji: '✨' },
-  { value: 'Sad', emoji: '☁️' },
-  { value: 'Excited', emoji: '🌸' },
-  { value: 'Tired', emoji: '🌙' },
+  { value: 'Happy', emoji: '😊' },
+  { value: 'Calm', emoji: '😌' },
+  { value: 'Sad', emoji: '😢' },
+  { value: 'Excited', emoji: '🤩' },
+  { value: 'Tired', emoji: '😴' },
+  { value: 'Grateful', emoji: '🙏' },
+  { value: 'Anxious', emoji: '😰' },
+  { value: 'Angry', emoji: '😡' },
+  { value: 'Productive', emoji: '🔥' },
+  { value: 'Inspired', emoji: '💡' },
 ];
 
 export default function DailyJournalScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
   const { createOrGetDailyJournal, updateDailyTitle, addEntry, updateEntry, deleteEntry } = useJournals();
   const [journal, setJournal] = useState<DailyJournal | null>(null);
-  
+
   const [titleInput, setTitleInput] = useState('');
-  
+
   // New section internal state
   const [isAdding, setIsAdding] = useState(false);
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
@@ -71,7 +76,7 @@ export default function DailyJournalScreen() {
 
   const handleSaveEntry = async () => {
     if (!journal || !selectedMood || !entryContent.trim()) return;
-    
+
     let permanentUris: string[] = [];
     if (composerImages && composerImages.length > 0) {
       for (const uri of composerImages) {
@@ -86,15 +91,15 @@ export default function DailyJournalScreen() {
         }
       }
     }
-    
+
     await addEntry(journal.id, selectedMood, entryContent.trim(), permanentUris.length > 0 ? permanentUris : undefined);
-    
+
     // Reset internal state
     setIsAdding(false);
     setSelectedMood(null);
     setEntryContent('');
     setComposerImages([]);
-    
+
     // Reload local data to reflect newly added entry
     loadJournal();
   };
@@ -102,21 +107,21 @@ export default function DailyJournalScreen() {
   // Convert "YYYY-MM-DD" back to date to print a nice header
   const dateObj = date ? new Date(date) : new Date();
   const offset = dateObj.getTimezoneOffset();
-  const localDate = new Date(dateObj.getTime() + (offset*60*1000));
+  const localDate = new Date(dateObj.getTime() + (offset * 60 * 1000));
   const dateDisplay = localDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
       <Stack.Screen options={{ title: '' }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
+
         <View style={styles.header}>
           <Text style={styles.dateText}>{dateDisplay}</Text>
-          <TextInput 
+          <TextInput
             style={styles.titleInput}
             placeholder="Give this day a title..."
             placeholderTextColor="#9CA3AF"
@@ -127,9 +132,9 @@ export default function DailyJournalScreen() {
         </View>
 
         {journal?.entries.map(entry => (
-          <EntryBlock 
-            key={entry.id.toString()} 
-            entry={entry} 
+          <EntryBlock
+            key={entry.id.toString()}
+            entry={entry}
             onUpdate={async (content, newImages) => {
               // Copy any newly-picked images to permanent storage
               let finalImages: string[] | undefined = undefined;
@@ -169,8 +174,8 @@ export default function DailyJournalScreen() {
                 <Text style={styles.moodPrompt}>HOW ARE YOU FEELING?</Text>
                 <View style={styles.moodOptions}>
                   {MOOD_OPTIONS.map(opt => (
-                    <TouchableOpacity 
-                      key={opt.value} 
+                    <TouchableOpacity
+                      key={opt.value}
                       style={styles.moodBtn}
                       onPress={() => handleSelectMood(opt.value)}
                     >
@@ -187,7 +192,7 @@ export default function DailyJournalScreen() {
                   <Text style={styles.moodText}>{selectedMood}</Text>
                 </View>
 
-                <TextInput 
+                <TextInput
                   ref={contentInputRef}
                   style={styles.composerInput}
                   placeholder="Start typing your thoughts here..."
@@ -218,8 +223,8 @@ export default function DailyJournalScreen() {
                     <TouchableOpacity onPress={() => { setIsAdding(false); setSelectedMood(null); setEntryContent(''); setComposerImages([]); }}>
                       <Text style={styles.cancelText}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={[styles.saveBtn, !entryContent.trim() && { opacity: 0.5 }]} 
+                    <TouchableOpacity
+                      style={[styles.saveBtn, !entryContent.trim() && { opacity: 0.5 }]}
                       onPress={handleSaveEntry}
                       disabled={!entryContent.trim()}
                     >

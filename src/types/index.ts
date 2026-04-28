@@ -1,4 +1,4 @@
-export type Mood = 'Happy' | 'Calm' | 'Sad' | 'Excited' | 'Tired';
+export type Mood = 'Happy' | 'Calm' | 'Sad' | 'Excited' | 'Tired' | 'Grateful' | 'Anxious' | 'Angry' | 'Productive' | 'Inspired';
 
 export interface JournalEntry {
   id: number;

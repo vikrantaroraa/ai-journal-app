@@ -6,11 +6,16 @@ import { Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInpu
 import { JournalEntry, Mood } from '../types';
 
 const moodConfig: Record<Mood, { emoji: string, color: string }> = {
-  Happy: { emoji: '🌿', color: '#E8F5E9' },
-  Calm: { emoji: '✨', color: '#FFF8E1' },
-  Sad: { emoji: '☁️', color: '#ECEFF1' },
-  Excited: { emoji: '🌸', color: '#FCE4EC' },
-  Tired: { emoji: '🌙', color: '#FFF3E0' },
+  Happy: { emoji: '😊', color: '#E8F5E9' },
+  Calm: { emoji: '😌', color: '#FFF8E1' },
+  Sad: { emoji: '😢', color: '#ECEFF1' },
+  Excited: { emoji: '🤩', color: '#FCE4EC' },
+  Tired: { emoji: '😴', color: '#FFF3E0' },
+  Grateful: { emoji: '🙏', color: '#E0F7FA' },
+  Anxious: { emoji: '😰', color: '#F3E5F5' },
+  Angry: { emoji: '😡', color: '#FFEBEE' },
+  Productive: { emoji: '🔥', color: '#E8EAF6' },
+  Inspired: { emoji: '💡', color: '#FFFDE7' },
 };
 
 interface EntryBlockProps {
