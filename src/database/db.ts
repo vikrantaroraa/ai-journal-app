@@ -49,6 +49,11 @@ export async function setupDatabase() {
       FOREIGN KEY (daily_journal_id) REFERENCES daily_journals (id) ON DELETE CASCADE
     );
 
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+
     CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_journals_date ON daily_journals(date DESC);
     CREATE INDEX IF NOT EXISTS idx_entries_journal_created ON journal_entries(daily_journal_id, created_at DESC);
   `);
@@ -171,4 +176,21 @@ export async function updateEntry(id: number, mood: Mood, content: string, image
 export async function deleteEntry(id: number): Promise<void> {
   const database = await getDatabase();
   await database.execAsync(`DELETE FROM journal_entries WHERE id = ${id}`);
+}
+
+export async function getSetting(key: string, defaultValue: string): Promise<string> {
+  const database = await getDatabase();
+  const result = await database.getFirstAsync<{ value: string }>(
+    `SELECT value FROM settings WHERE key = ?`,
+    [key]
+  );
+  return result?.value ?? defaultValue;
+}
+
+export async function setSetting(key: string, value: string): Promise<void> {
+  const database = await getDatabase();
+  await database.execAsync(
+    `INSERT INTO settings (key, value) VALUES ('${esc(key)}', '${esc(value)}') 
+     ON CONFLICT(key) DO UPDATE SET value = '${esc(value)}'`
+  );
 }

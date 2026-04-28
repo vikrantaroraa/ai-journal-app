@@ -3,22 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useJournals } from '../hooks/useJournals';
 
-// Mood emoji map
-const moodEmojis: Record<string, string> = {
-  Happy: '😊',
-  Calm: '😌',
-  Sad: '😢',
-  Excited: '🤩',
-  Tired: '😴',
-  Grateful: '🙏',
-  Anxious: '😰',
-  Angry: '😡',
-  Productive: '🔥',
-  Inspired: '💡',
-};
+import { getThemeIcon } from '../utils/iconThemes';
 
 export default function Home() {
-  const { timeline, isLoading, refreshTimeline } = useJournals();
+  const { timeline, isLoading, refreshTimeline, iconTheme } = useJournals();
   const router = useRouter();
 
   useFocusEffect(
@@ -70,7 +58,6 @@ export default function Home() {
     const dateObj = new Date(`${item.parentDateString}T12:00:00`);
     const dayNumeric = dateObj.getDate().toString();
     const monthShort = dateObj.toLocaleDateString('en-US', { month: 'short' });
-    const emoji = moodEmojis[item.mood] || '😐';
     const hasImages = item.images && item.images.length > 0;
     const maxLines = hasImages ? 2 : 3;
 
@@ -85,7 +72,9 @@ export default function Home() {
             <Text style={styles.entryDayNum}>{dayNumeric}</Text>
             <Text style={styles.entryMonth}>{monthShort}</Text>
           </View>
-          <Text style={styles.entryEmoji}>{emoji}</Text>
+          <View style={styles.entryEmojiContainer}>
+            {getThemeIcon(iconTheme, item.mood, 28)}
+          </View>
         </View>
         <View style={styles.entryBody}>
           <Text style={[styles.entryContent, { flex: 1 }]} numberOfLines={maxLines}>{item.content}</Text>
@@ -210,8 +199,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#475569',
   },
-  entryEmoji: {
-    fontSize: 32,
+  entryEmojiContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
   },
   entryBody: {
     flexDirection: 'row',

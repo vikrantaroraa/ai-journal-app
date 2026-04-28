@@ -3,19 +3,21 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImagePlus, SquarePen, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useJournals } from '../hooks/useJournals';
 import { JournalEntry, Mood } from '../types';
+import { getThemeIcon } from '../utils/iconThemes';
 
-const moodConfig: Record<Mood, { emoji: string, color: string }> = {
-  Happy: { emoji: '😊', color: '#E8F5E9' },
-  Calm: { emoji: '😌', color: '#FFF8E1' },
-  Sad: { emoji: '😢', color: '#ECEFF1' },
-  Excited: { emoji: '🤩', color: '#FCE4EC' },
-  Tired: { emoji: '😴', color: '#FFF3E0' },
-  Grateful: { emoji: '🙏', color: '#E0F7FA' },
-  Anxious: { emoji: '😰', color: '#F3E5F5' },
-  Angry: { emoji: '😡', color: '#FFEBEE' },
-  Productive: { emoji: '🔥', color: '#E8EAF6' },
-  Inspired: { emoji: '💡', color: '#FFFDE7' },
+const moodConfig: Record<Mood, { color: string }> = {
+  Happy: { color: '#E8F5E9' },
+  Calm: { color: '#FFF8E1' },
+  Sad: { color: '#ECEFF1' },
+  Excited: { color: '#FCE4EC' },
+  Tired: { color: '#FFF3E0' },
+  Grateful: { color: '#E0F7FA' },
+  Anxious: { color: '#F3E5F5' },
+  Angry: { color: '#FFEBEE' },
+  Productive: { color: '#E8EAF6' },
+  Inspired: { color: '#FFFDE7' },
 };
 
 interface EntryBlockProps {
@@ -25,7 +27,8 @@ interface EntryBlockProps {
 }
 
 export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProps) {
-  const config = moodConfig[entry.mood] || { emoji: '😐', color: '#F3F4F6' };
+  const { iconTheme } = useJournals();
+  const config = moodConfig[entry.mood] || { color: '#F3F4F6' };
 
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(entry.content);
@@ -93,7 +96,9 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={[styles.badge, { backgroundColor: config.color }]}>
-          <Text style={styles.badgeEmoji}>{config.emoji}</Text>
+          <View style={styles.badgeEmojiContainer}>
+            {getThemeIcon(iconTheme, entry.mood, 16)}
+          </View>
           <Text style={styles.badgeText}>{entry.mood}</Text>
         </View>
 
@@ -266,9 +271,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 20,
   },
-  badgeEmoji: {
-    fontSize: 14,
+  badgeEmojiContainer: {
     marginRight: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badgeText: {
     fontSize: 13,

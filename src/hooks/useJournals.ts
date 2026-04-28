@@ -5,12 +5,15 @@ import * as db from '../database/db';
 export function useJournals() {
   const [timeline, setTimeline] = useState<DailyJournal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [iconTheme, setIconTheme] = useState<string>('emoji');
 
   // Initialize DB and fetch timeline
   const loadTimeline = useCallback(async () => {
     try {
       setIsLoading(true);
       await db.setupDatabase();
+      const theme = await db.getSetting('iconTheme', 'emoji');
+      setIconTheme(theme);
       const data = await db.getTimeline();
       setTimeline(data);
     } catch (e) {
@@ -93,15 +96,22 @@ export function useJournals() {
     })));
   };
 
+  const updateIconTheme = async (theme: string) => {
+    await db.setSetting('iconTheme', theme);
+    setIconTheme(theme);
+  };
+
   return {
     timeline,
     isLoading,
+    iconTheme,
     getTodayJournal,
     createOrGetDailyJournal,
     updateDailyTitle,
     addEntry,
     updateEntry,
     deleteEntry,
-    refreshTimeline: loadTimeline
+    refreshTimeline: loadTimeline,
+    updateIconTheme
   };
 }

@@ -1,29 +1,32 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { ImagePlus } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import EntryBlock from '../../components/EntryBlock';
 import { useJournals } from '../../hooks/useJournals';
 import { DailyJournal, Mood } from '../../types';
+import { getThemeIcon } from '../../utils/iconThemes';
 
-const MOOD_OPTIONS: { value: Mood, emoji: string }[] = [
-  { value: 'Happy', emoji: '😊' },
-  { value: 'Calm', emoji: '😌' },
-  { value: 'Sad', emoji: '😢' },
-  { value: 'Excited', emoji: '🤩' },
-  { value: 'Tired', emoji: '😴' },
-  { value: 'Grateful', emoji: '🙏' },
-  { value: 'Anxious', emoji: '😰' },
-  { value: 'Angry', emoji: '😡' },
-  { value: 'Productive', emoji: '🔥' },
-  { value: 'Inspired', emoji: '💡' },
+const MOOD_OPTIONS: { value: Mood }[] = [
+  { value: 'Happy' },
+  { value: 'Calm' },
+  { value: 'Sad' },
+  { value: 'Excited' },
+  { value: 'Tired' },
+  { value: 'Grateful' },
+  { value: 'Anxious' },
+  { value: 'Angry' },
+  { value: 'Productive' },
+  { value: 'Inspired' },
 ];
+
 
 export default function DailyJournalScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
-  const { createOrGetDailyJournal, updateDailyTitle, addEntry, updateEntry, deleteEntry } = useJournals();
+  const router = useRouter();
+  const { createOrGetDailyJournal, updateDailyTitle, addEntry, updateEntry, deleteEntry, iconTheme, refreshTimeline } = useJournals();
   const [journal, setJournal] = useState<DailyJournal | null>(null);
 
   const [titleInput, setTitleInput] = useState('');
@@ -35,11 +38,14 @@ export default function DailyJournalScreen() {
   const [composerImages, setComposerImages] = useState<string[]>([]);
   const contentInputRef = useRef<TextInput>(null);
 
-  useEffect(() => {
-    if (date) {
-      loadJournal();
-    }
-  }, [date]);
+  useFocusEffect(
+    useCallback(() => {
+      if (date) {
+        refreshTimeline();
+        loadJournal();
+      }
+    }, [date])
+  );
 
   const loadJournal = async () => {
     const data = await createOrGetDailyJournal(date as string);
@@ -171,7 +177,12 @@ export default function DailyJournalScreen() {
           <View style={styles.newSectionContainer}>
             {!selectedMood ? (
               <View style={styles.moodSelector}>
-                <Text style={styles.moodPrompt}>HOW ARE YOU FEELING?</Text>
+                <View style={styles.moodPromptHeader}>
+                  <Text style={styles.moodPrompt}>HOW ARE YOU FEELING?</Text>
+                  <TouchableOpacity onPress={() => router.push('/settings/icons')}>
+                    <Text style={styles.moreLabel}>More...</Text>
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.moodOptions}>
                   {MOOD_OPTIONS.map(opt => (
                     <TouchableOpacity
@@ -179,7 +190,9 @@ export default function DailyJournalScreen() {
                       style={styles.moodBtn}
                       onPress={() => handleSelectMood(opt.value)}
                     >
-                      <Text style={styles.moodEmoji}>{opt.emoji}</Text>
+                      <View style={styles.moodEmojiContainer}>
+                        {getThemeIcon(iconTheme, opt.value, 20)}
+                      </View>
                       <Text style={styles.moodText}>{opt.value}</Text>
                     </TouchableOpacity>
                   ))}
@@ -188,7 +201,9 @@ export default function DailyJournalScreen() {
             ) : (
               <View style={styles.composer}>
                 <View style={[styles.moodBadgeSelected, { backgroundColor: '#F3F4F6' }]}>
-                  <Text style={styles.moodEmoji}>{MOOD_OPTIONS.find(m => m.value === selectedMood)?.emoji}</Text>
+                  <View style={styles.moodEmojiContainer}>
+                    {getThemeIcon(iconTheme, selectedMood!, 20)}
+                  </View>
                   <Text style={styles.moodText}>{selectedMood}</Text>
                 </View>
 
@@ -294,12 +309,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
   },
+  moodPromptHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    alignItems: 'baseline',
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  moreLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4F46E5', // Use a subtle accent color or simple gray
+    textDecorationLine: 'underline',
+  },
   moodPrompt: {
     fontSize: 12,
     fontWeight: '600',
     color: '#6B7280',
     letterSpacing: 1,
-    marginBottom: 20,
   },
   moodOptions: {
     flexDirection: 'row',
@@ -326,9 +354,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 16,
   },
-  moodEmoji: {
-    fontSize: 16,
+  moodEmojiContainer: {
     marginRight: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   moodText: {
     fontSize: 14,
