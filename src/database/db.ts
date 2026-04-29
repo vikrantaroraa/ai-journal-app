@@ -69,6 +69,15 @@ export async function setupDatabase() {
       console.log("Migration skipped (column likely exists):", e);
     }
   }
+
+  const hasIconTheme = tableInfo.some(col => col.name === 'icon_theme');
+  if (!hasIconTheme) {
+    try {
+      await database.execAsync("ALTER TABLE journal_entries ADD COLUMN icon_theme TEXT DEFAULT 'emoji';");
+    } catch (e) {
+      console.log("Migration skipped for icon_theme:", e);
+    }
+  }
 }
 
 export async function getTimeline(): Promise<DailyJournal[]> {
@@ -92,6 +101,7 @@ export async function getTimeline(): Promise<DailyJournal[]> {
       mood: row.mood as Mood,
       content: row.content,
       images: parseImages(row.image_uri),
+      iconTheme: row.icon_theme || 'emoji',
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     });
@@ -125,6 +135,7 @@ export async function getDailyJournal(dateString: string): Promise<DailyJournal 
     mood: row.mood as Mood,
     content: row.content,
     images: parseImages(row.image_uri),
+    iconTheme: row.icon_theme || 'emoji',
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   }));
@@ -153,12 +164,12 @@ export async function updateDailyTitle(id: number, title: string): Promise<void>
   );
 }
 
-export async function addEntry(dailyJournalId: number, mood: Mood, content: string, images?: string[]): Promise<number> {
+export async function addEntry(dailyJournalId: number, mood: Mood, content: string, images?: string[], iconTheme: string = 'emoji'): Promise<number> {
   const database = await getDatabase();
   const now = new Date().toISOString();
   const dbImageStr = images && images.length > 0 ? JSON.stringify(images) : '';
   await database.execAsync(
-    `INSERT INTO journal_entries (daily_journal_id, mood, content, image_uri, created_at, updated_at) VALUES (${dailyJournalId}, '${esc(mood)}', '${esc(content)}', '${esc(dbImageStr)}', '${esc(now)}', '${esc(now)}')`
+    `INSERT INTO journal_entries (daily_journal_id, mood, content, image_uri, icon_theme, created_at, updated_at) VALUES (${dailyJournalId}, '${esc(mood)}', '${esc(content)}', '${esc(dbImageStr)}', '${esc(iconTheme)}', '${esc(now)}', '${esc(now)}')`
   );
   const row = await database.getFirstAsync<any>('SELECT last_insert_rowid() as id');
   return row.id;

@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImagePlus, SquarePen, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useJournals } from '../hooks/useJournals';
+
 import { JournalEntry, Mood } from '../types';
 import { getThemeIcon } from '../utils/iconThemes';
 
@@ -27,8 +27,8 @@ interface EntryBlockProps {
 }
 
 export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProps) {
-  const { iconTheme } = useJournals();
   const config = moodConfig[entry.mood] || { color: '#F3F4F6' };
+  const displayTheme = entry.iconTheme || 'emoji';
 
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(entry.content);
@@ -97,7 +97,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
       <View style={styles.header}>
         <View style={[styles.badge, { backgroundColor: config.color }]}>
           <View style={styles.badgeEmojiContainer}>
-            {getThemeIcon(iconTheme, entry.mood, 16)}
+            {getThemeIcon(displayTheme, entry.mood, 16)}
           </View>
           <Text style={styles.badgeText}>{entry.mood}</Text>
         </View>

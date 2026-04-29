@@ -61,6 +61,8 @@ export default function Home() {
     const hasImages = item.images && item.images.length > 0;
     const maxLines = hasImages ? 2 : 3;
 
+    const displayTheme = item.iconTheme || 'emoji';
+
     return (
       <TouchableOpacity
         style={styles.entryCard}
@@ -73,7 +75,7 @@ export default function Home() {
             <Text style={styles.entryMonth}>{monthShort}</Text>
           </View>
           <View style={styles.entryEmojiContainer}>
-            {getThemeIcon(iconTheme, item.mood, 28)}
+            {getThemeIcon(displayTheme, item.mood, 28)}
           </View>
         </View>
         <View style={styles.entryBody}>

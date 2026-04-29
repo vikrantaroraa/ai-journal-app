@@ -6,6 +6,7 @@ export interface JournalEntry {
   mood: Mood;
   content: string;
   images?: string[];
+  iconTheme?: string;
   createdAt: Date;
   updatedAt: Date;
 }

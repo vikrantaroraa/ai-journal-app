@@ -51,13 +51,14 @@ export function useJournals() {
   };
 
   const addEntry = async (dailyJournalId: number, mood: Mood, content: string, images?: string[]) => {
-    const newEntryId = await db.addEntry(dailyJournalId, mood, content, images);
+    const newEntryId = await db.addEntry(dailyJournalId, mood, content, images, iconTheme);
     const newEntry: JournalEntry = {
       id: newEntryId,
       dailyJournalId,
       mood,
       content,
       images,
+      iconTheme,
       createdAt: new Date(),
       updatedAt: new Date()
     };
