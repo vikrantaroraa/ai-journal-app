@@ -1,8 +1,10 @@
-import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { View, StyleSheet, SafeAreaView, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
+import { ChevronLeft, ChevronRight, PartyPopper } from 'lucide-react-native';
 import { useJournals } from '../hooks/useJournals';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
+import EntryBlock from '../components/EntryBlock';
 
 export default function CalendarScreen() {
   const router = useRouter();
@@ -14,62 +16,112 @@ export default function CalendarScreen() {
     }, [refreshTimeline])
   );
 
+  const offset = new Date().getTimezoneOffset();
+  const todayStr = new Date(new Date().getTime() - (offset*60*1000)).toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+
   const markedDates = useMemo(() => {
     const marks: Record<string, any> = {};
     timeline.forEach(day => {
       if (day.entries.length > 0) {
         marks[day.date] = {
           marked: true,
-          dotColor: '#95A4FE', // Match the periwinkle aesthetic
+          dotColor: '#CBD5E1', 
         };
       }
     });
     
-    // Always mark today with a subtle highlight
-    const offset = new Date().getTimezoneOffset();
-    const todayStr = new Date(new Date().getTime() - (offset*60*1000)).toISOString().split('T')[0];
-    
-    if (marks[todayStr]) {
-      marks[todayStr] = { ...marks[todayStr], selected: true, selectedColor: '#4956a0' };
+    // Always mark selected date with a solid dark circle
+    if (marks[selectedDate]) {
+      marks[selectedDate] = { ...marks[selectedDate], selected: true, selectedColor: '#0F172A', selectedTextColor: '#FFFFFF' };
     } else {
-      marks[todayStr] = { selected: true, selectedColor: '#4956a0' };
+      marks[selectedDate] = { selected: true, selectedColor: '#0F172A', selectedTextColor: '#FFFFFF' };
     }
     
     return marks;
-  }, [timeline]);
+  }, [timeline, selectedDate]);
+
+  const selectedJournal = useMemo(() => {
+    return timeline.find(day => day.date === selectedDate);
+  }, [timeline, selectedDate]);
+
+  // Format selected date for display
+  const displayDate = useMemo(() => {
+    if (selectedDate === todayStr) return 'Today';
+    const dateObj = new Date(`${selectedDate}T12:00:00`);
+    return dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  }, [selectedDate, todayStr]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Calendar
-          // Custom style
           theme={{
             backgroundColor: '#F8FAFC',
-            calendarBackground: '#FFFFFF',
-            textSectionTitleColor: '#64748B',
-            selectedDayBackgroundColor: '#4956a0', // Deep Indigo map
-            selectedDayTextColor: '#ffffff',
-            todayTextColor: '#95A4FE',
-            dayTextColor: '#0F172A',
+            calendarBackground: '#F8FAFC',
+            textSectionTitleColor: '#94A3B8',
+            selectedDayBackgroundColor: '#0F172A',
+            selectedDayTextColor: '#FFFFFF',
+            todayTextColor: '#0F172A',
+            dayTextColor: '#1E293B',
             textDisabledColor: '#CBD5E1',
-            dotColor: '#95A4FE',
-            selectedDotColor: '#ffffff',
-            arrowColor: '#4956a0',
+            dotColor: '#94A3B8',
+            selectedDotColor: '#FFFFFF',
             monthTextColor: '#0F172A',
-            indicatorColor: '#4956a0',
             textDayFontWeight: '500',
             textMonthFontWeight: '700',
-            textDayHeaderFontWeight: '600',
+            textDayHeaderFontWeight: '700',
             textDayFontSize: 16,
-            textMonthFontSize: 18,
-            textDayHeaderFontSize: 14
+            textMonthFontSize: 20,
+            textDayHeaderFontSize: 11,
           }}
           markedDates={markedDates}
           onDayPress={(day: { dateString: string }) => {
-            router.push(`/journal/${day.dateString}`);
+            setSelectedDate(day.dateString);
           }}
+          renderArrow={(direction: 'left' | 'right') => (
+            <View style={styles.arrowContainer}>
+              {direction === 'left' ? <ChevronLeft size={20} color="#0F172A" /> : <ChevronRight size={20} color="#0F172A" />}
+            </View>
+          )}
           style={styles.calendarWidget}
         />
+
+        <View style={styles.legendContainer}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#CBD5E1' }]} />
+            <Text style={styles.legendText}>Journal Entry</Text>
+          </View>
+        </View>
+
+        <View style={styles.bottomSection}>
+          <View style={styles.bottomHeaderRow}>
+            <Text style={styles.bottomTitle}>{displayDate}</Text>
+            <TouchableOpacity onPress={() => router.push(`/journal/${selectedDate}`)}>
+              <Text style={styles.writeLink}>Write</Text>
+            </TouchableOpacity>
+          </View>
+
+          {!selectedJournal || selectedJournal.entries.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyEmoji}>🎉</Text>
+              <Text style={styles.emptyTitle}>Nothing here — enjoy the day</Text>
+              <Text style={styles.emptySub}>Tap Write to reflect on {displayDate.toLowerCase()}</Text>
+            </View>
+          ) : (
+            <ScrollView style={styles.entryScroll} showsVerticalScrollIndicator={false}>
+              {selectedJournal.entries.map(entry => (
+                <EntryBlock
+                  key={entry.id.toString()}
+                  entry={entry}
+                  onUpdate={() => refreshTimeline()} // Simplified for calendar view, user should use journal route for deep edits
+                  onDelete={() => refreshTimeline()}
+                />
+              ))}
+              <View style={{ height: 40 }} />
+            </ScrollView>
+          )}
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -83,15 +135,84 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 16,
-    paddingHorizontal: 16,
   },
   calendarWidget: {
-    borderRadius: 16,
     paddingBottom: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    backgroundColor: '#F8FAFC',
+  },
+  arrowContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  legendDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  bottomSection: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  bottomHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 20,
+  },
+  bottomTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  writeLink: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 60,
+  },
+  emptyEmoji: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 8,
+  },
+  emptySub: {
+    fontSize: 14,
+    color: '#94A3B8',
+  },
+  entryScroll: {
+    flex: 1,
   }
 });
