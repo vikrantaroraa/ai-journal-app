@@ -1,6 +1,7 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useJournals } from '../hooks/useJournals';
 
 import { getThemeIcon } from '../utils/iconThemes';
@@ -8,6 +9,7 @@ import { getThemeIcon } from '../utils/iconThemes';
 export default function Home() {
   const { timeline, isLoading, refreshTimeline, iconTheme } = useJournals();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useFocusEffect(
     useCallback(() => {
@@ -117,8 +119,12 @@ export default function Home() {
           }
         />
 
-        {/* Bottom Left FAB */}
-        <TouchableOpacity style={styles.fab} onPress={handleNewEntry} activeOpacity={0.9}>
+        {/* Bottom Right FAB */}
+        <TouchableOpacity 
+          style={[styles.fab, { bottom: Math.max(insets.bottom + 16, 30) }]} 
+          onPress={handleNewEntry} 
+          activeOpacity={0.9}
+        >
           <Text style={styles.fabIcon}>+</Text>
         </TouchableOpacity>
 
