@@ -180,7 +180,7 @@ export default function DailyJournalScreen() {
                 <View style={styles.moodPromptHeader}>
                   <Text style={styles.moodPrompt}>HOW ARE YOU FEELING?</Text>
                   <TouchableOpacity onPress={() => router.push('/settings/icons')}>
-                    <Text style={styles.moreLabel}>More...</Text>
+                    <Text style={styles.moreLabel}>More</Text>
                   </TouchableOpacity>
                 </View>
                 <View style={styles.moodOptions}>
@@ -319,9 +319,8 @@ const styles = StyleSheet.create({
   },
   moreLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#4F46E5', // Use a subtle accent color or simple gray
-    textDecorationLine: 'underline',
+    fontWeight: '500',
+    color: '#9CA3AF',
   },
   moodPrompt: {
     fontSize: 12,
@@ -338,12 +337,17 @@ const styles = StyleSheet.create({
   moodBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   moodBadgeSelected: {
     alignSelf: 'flex-start',
