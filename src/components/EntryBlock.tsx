@@ -22,7 +22,7 @@ const moodConfig: Record<Mood, { color: string }> = {
 
 interface EntryBlockProps {
   entry: JournalEntry;
-  onUpdate?: (newContent: string, newImages?: string[]) => void;
+  onUpdate?: (newMood: Mood, newContent: string, newImages?: string[]) => void;
   onDelete?: () => void;
 }
 
@@ -31,8 +31,10 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   const displayTheme = entry.iconTheme || 'emoji';
 
   const [isEditing, setIsEditing] = useState(false);
+  const [editMood, setEditMood] = useState<Mood>(entry.mood);
   const [editContent, setEditContent] = useState(entry.content);
   const [editImages, setEditImages] = useState<string[]>(entry.images || []);
+  const [isMoodPickerVisible, setIsMoodPickerVisible] = useState(false);
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
 
@@ -52,6 +54,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   const displayTime = isEdited ? `${timeString}  •  edited ${updatedDateString}, ${updatedTimeString}` : timeString;
 
   const handleStartEdit = () => {
+    setEditMood(entry.mood);
     setEditContent(entry.content);
     setEditImages(entry.images || []);
     setIsEditing(true);
@@ -59,12 +62,13 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
 
   const handleSave = () => {
     if (editContent.trim() && onUpdate) {
-      onUpdate(editContent.trim(), editImages.length > 0 ? editImages : undefined);
+      onUpdate(editMood, editContent.trim(), editImages.length > 0 ? editImages : undefined);
       setIsEditing(false);
     }
   };
 
   const handleCancel = () => {
+    setEditMood(entry.mood);
     setEditContent(entry.content);
     setEditImages(entry.images || []);
     setIsEditing(false);
@@ -95,12 +99,25 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={[styles.badge, { backgroundColor: config.color }]}>
-          <View style={styles.badgeEmojiContainer}>
-            {getThemeIcon(displayTheme, entry.mood, 16)}
+        {isEditing ? (
+          <TouchableOpacity 
+            style={[styles.badge, { backgroundColor: moodConfig[editMood]?.color || '#F3F4F6', borderWidth: 1, borderColor: '#D1D5DB', borderStyle: 'dashed' }]}
+            onPress={() => setIsMoodPickerVisible(true)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.badgeEmojiContainer}>
+              {getThemeIcon(displayTheme, editMood, 16)}
+            </View>
+            <Text style={styles.badgeText}>{editMood} ▾</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.badge, { backgroundColor: config.color }]}>
+            <View style={styles.badgeEmojiContainer}>
+              {getThemeIcon(displayTheme, entry.mood, 16)}
+            </View>
+            <Text style={styles.badgeText}>{entry.mood}</Text>
           </View>
-          <Text style={styles.badgeText}>{entry.mood}</Text>
-        </View>
+        )}
 
         {!isEditing && onUpdate && (
           <TouchableOpacity onPress={handleStartEdit} style={styles.editBtn}>
@@ -192,6 +209,28 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
           <Text style={styles.time}>{displayTime}</Text>
         </>
       )}
+
+      {/* Mood Picker Modal */}
+      <Modal visible={isMoodPickerVisible} transparent animationType="fade">
+        <TouchableOpacity style={styles.moodModalBackdrop} activeOpacity={1} onPress={() => setIsMoodPickerVisible(false)}>
+          <View style={styles.moodModalContent}>
+            <Text style={styles.moodModalTitle}>Select Mood</Text>
+            <View style={styles.moodGrid}>
+              {(Object.keys(moodConfig) as Mood[]).map(mood => (
+                <TouchableOpacity 
+                  key={mood}
+                  style={[styles.moodModalBtn, editMood === mood && styles.moodModalBtnSelected]}
+                  onPress={() => { setEditMood(mood); setIsMoodPickerVisible(false); }}
+                >
+                  {getThemeIcon(displayTheme, mood, 24)}
+                  <Text style={[styles.moodModalBtnText, editMood === mood && { color: '#4F46E5', fontWeight: '600' }]}>{mood}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Fullscreen image viewer overlay */}
       <Modal visible={viewerVisible} transparent animationType="fade">
         <View style={styles.viewerBackdrop}>
@@ -428,8 +467,57 @@ const styles = StyleSheet.create({
   },
   viewerCloseText: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
+  },
+  moodModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  moodModalContent: {
+    backgroundColor: '#FFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '85%',
+    maxWidth: 340,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  moodModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  moodGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  moodModalBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    borderRadius: 16,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    width: '30%',
+  },
+  moodModalBtnSelected: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#4F46E5',
+  },
+  moodModalBtnText: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 6,
   },
   viewerCounter: {
     position: 'absolute',

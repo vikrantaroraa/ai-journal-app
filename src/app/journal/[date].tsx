@@ -141,7 +141,7 @@ export default function DailyJournalScreen() {
           <EntryBlock
             key={entry.id.toString()}
             entry={entry}
-            onUpdate={async (content, newImages) => {
+            onUpdate={async (newMood, content, newImages) => {
               // Copy any newly-picked images to permanent storage
               let finalImages: string[] | undefined = undefined;
               if (newImages && newImages.length > 0) {
@@ -159,7 +159,7 @@ export default function DailyJournalScreen() {
                   }
                 }
               }
-              await updateEntry(entry.id, entry.mood, content, finalImages);
+              await updateEntry(entry.id, newMood, content, finalImages);
               loadJournal();
             }}
             onDelete={async () => {
