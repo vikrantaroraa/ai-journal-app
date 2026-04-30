@@ -75,7 +75,7 @@ export default function Home() {
             <Text style={styles.entryMonth}>{monthShort}</Text>
           </View>
           <View style={styles.entryEmojiContainer}>
-            {getThemeIcon(displayTheme, item.mood, 28)}
+            {getThemeIcon(displayTheme, item.mood, 22)}
           </View>
         </View>
         <View style={styles.entryBody}>
@@ -204,8 +204,7 @@ const styles = StyleSheet.create({
   entryEmojiContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 32,
-    height: 32,
+    overflow: 'visible',
   },
   entryBody: {
     flexDirection: 'row',

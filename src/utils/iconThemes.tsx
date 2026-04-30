@@ -48,5 +48,5 @@ export const getThemeIcon = (theme: string, mood: Mood, size: number = 24, color
     case 'Inspired': emojiChar = '💡'; break;
   }
   
-  return <Text style={{ fontSize: size }}>{emojiChar}</Text>;
+  return <Text style={{ fontSize: size, lineHeight: size * 1.2 }}>{emojiChar}</Text>;
 };
