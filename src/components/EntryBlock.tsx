@@ -1,6 +1,6 @@
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 import * as ImagePicker from 'expo-image-picker';
-import { ImagePlus, SquarePen, Trash2 } from 'lucide-react-native';
+import { ImagePlus, SquarePen, Trash2, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -214,7 +214,12 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
       <Modal visible={isMoodPickerVisible} transparent animationType="fade">
         <TouchableOpacity style={styles.moodModalBackdrop} activeOpacity={1} onPress={() => setIsMoodPickerVisible(false)}>
           <View style={styles.moodModalContent}>
-            <Text style={styles.moodModalTitle}>Select Mood</Text>
+            <View style={styles.moodModalHeader}>
+              <Text style={styles.moodModalTitle}>Select Mood</Text>
+              <TouchableOpacity onPress={() => setIsMoodPickerVisible(false)} style={styles.moodModalClose}>
+                <X size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+            </View>
             <View style={styles.moodGrid}>
               {(Object.keys(moodConfig) as Mood[]).map(mood => (
                 <TouchableOpacity 
@@ -487,11 +492,23 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
   },
+  moodModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    position: 'relative',
+  },
+  moodModalClose: {
+    position: 'absolute',
+    right: -10,
+    top: -10,
+    padding: 10,
+  },
   moodModalTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 16,
     textAlign: 'center',
   },
   moodGrid: {
