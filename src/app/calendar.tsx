@@ -1,10 +1,10 @@
-import { View, StyleSheet, SafeAreaView, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { ChevronLeft, ChevronRight, PartyPopper } from 'lucide-react-native';
-import { useJournals } from '../hooks/useJournals';
-import { useMemo, useCallback, useState } from 'react';
 import EntryBlock from '../components/EntryBlock';
+import { useJournals } from '../hooks/useJournals';
 
 export default function CalendarScreen() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function CalendarScreen() {
   );
 
   const offset = new Date().getTimezoneOffset();
-  const todayStr = new Date(new Date().getTime() - (offset*60*1000)).toISOString().split('T')[0];
+  const todayStr = new Date(new Date().getTime() - (offset * 60 * 1000)).toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
 
   const markedDates = useMemo(() => {
@@ -26,18 +26,18 @@ export default function CalendarScreen() {
       if (day.entries.length > 0) {
         marks[day.date] = {
           marked: true,
-          dotColor: '#CBD5E1', 
+          dotColor: '#CBD5E1',
         };
       }
     });
-    
+
     // Always mark selected date with a solid dark circle
     if (marks[selectedDate]) {
       marks[selectedDate] = { ...marks[selectedDate], selected: true, selectedColor: '#0F172A', selectedTextColor: '#FFFFFF' };
     } else {
       marks[selectedDate] = { selected: true, selectedColor: '#0F172A', selectedTextColor: '#FFFFFF' };
     }
-    
+
     return marks;
   }, [timeline, selectedDate]);
 
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   emptyEmoji: {
-    fontSize: 48,
+    fontSize: 44,
     marginBottom: 16,
   },
   emptyTitle: {
