@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import { Check, Square } from 'lucide-react-native';
+import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useJournals } from '../../hooks/useJournals';
+import { Mood } from '../../types';
 import { THEMES, getThemeIcon } from '../../utils/iconThemes';
-import { Check } from 'lucide-react-native';
 
 export default function IconThemesScreen() {
   const { iconTheme, updateIconTheme } = useJournals();
@@ -10,42 +11,53 @@ export default function IconThemesScreen() {
 
   const handleSelectTheme = async (themeId: string) => {
     await updateIconTheme(themeId);
-    router.back();
   };
+
+  const ALL_MOODS: Mood[] = [
+    'Happy', 'Calm', 'Sad', 'Excited', 'Tired',
+    'Grateful', 'Anxious', 'Angry', 'Productive', 'Inspired'
+  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Stack.Screen options={{ title: 'Icon Theme', headerShadowVisible: false, headerStyle: { backgroundColor: '#F8FAFC' } }} />
+      <Stack.Screen options={{
+        title: 'Mood Style',
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: '#F0F4F8' },
+        headerTintColor: '#1E293B'
+      }} />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Select Icon Theme</Text>
-        <Text style={styles.subtitle}>Choose how moods are displayed across your journal.</Text>
-
         <View style={styles.themeList}>
-          {THEMES.map(theme => {
+          {THEMES.map((theme, index) => {
             const isSelected = iconTheme === theme.id;
+            const isLast = index === THEMES.length - 1;
             return (
-              <TouchableOpacity 
-                key={theme.id} 
-                style={[styles.themeCard, isSelected && styles.themeCardSelected]}
-                onPress={() => handleSelectTheme(theme.id)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.themeHeader}>
+              <View key={theme.id}>
+                <TouchableOpacity
+                  style={styles.themeHeaderRow}
+                  onPress={() => handleSelectTheme(theme.id)}
+                  activeOpacity={0.7}
+                >
                   <Text style={styles.themeName}>{theme.name}</Text>
-                  {isSelected && <Check size={20} color="#4F46E5" />}
+                  {isSelected ? (
+                    <View style={styles.checkboxSelected}>
+                      <Check size={16} color="#FFFFFF" strokeWidth={3} />
+                    </View>
+                  ) : (
+                    <Square size={24} color="#94A3B8" strokeWidth={2} />
+                  )}
+                </TouchableOpacity>
+
+                <View style={styles.previewGrid}>
+                  {ALL_MOODS.map(mood => (
+                    <View key={mood} style={styles.iconCell}>
+                      {getThemeIcon(theme.id, mood, 28, '#4B5563')}
+                    </View>
+                  ))}
                 </View>
-                <Text style={styles.themeDesc}>{theme.description}</Text>
-                
-                <View style={styles.previewBox}>
-                  <Text style={styles.previewLabel}>Preview:</Text>
-                  <View style={styles.previewIcons}>
-                    {getThemeIcon(theme.id, 'Happy', 28, '#4B5563')}
-                    {getThemeIcon(theme.id, 'Calm', 28, '#4B5563')}
-                    {getThemeIcon(theme.id, 'Excited', 28, '#4B5563')}
-                    {getThemeIcon(theme.id, 'Inspired', 28, '#4B5563')}
-                  </View>
-                </View>
-              </TouchableOpacity>
+
+                {!isLast && <View style={styles.divider} />}
+              </View>
             );
           })}
         </View>
@@ -57,79 +69,55 @@ export default function IconThemesScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F0F4F8', // Slightly blueish light grey matching the image
   },
   container: {
     flex: 1,
+    backgroundColor: '#F0F4F8',
   },
   content: {
-    padding: 24,
+    paddingTop: 16,
     paddingBottom: 40,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#64748B',
-    marginBottom: 32,
-    lineHeight: 24,
-  },
   themeList: {
-    gap: 16,
+    flexDirection: 'column',
   },
-  themeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  themeCardSelected: {
-    borderColor: '#4F46E5',
-    backgroundColor: '#EEF2FF',
-  },
-  themeHeader: {
+  themeHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   themeName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-  },
-  themeDesc: {
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 20,
-    lineHeight: 20,
-  },
-  previewBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  previewLabel: {
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#94A3B8',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 12,
+    color: '#64748B', // Muted text for the label
   },
-  previewIcons: {
+  checkboxSelected: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: '#1E293B',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewGrid: {
     flexDirection: 'row',
-    gap: 20,
+    flexWrap: 'wrap',
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    rowGap: 24,
+    justifyContent: 'space-between',
+  },
+  iconCell: {
+    width: '18%', // Roughly fits 5 icons per row tightly
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    width: '100%',
   }
 });

@@ -1,8 +1,8 @@
 import { useFocusEffect, useRouter } from 'expo-router';
+import { BookOpen, ChevronRight, PenLine, Settings } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Settings, ChevronRight, PenLine, BookOpen } from 'lucide-react-native';
 import { useJournals } from '../hooks/useJournals';
 
 import { getThemeIcon } from '../utils/iconThemes';
@@ -142,9 +142,9 @@ export default function Home() {
         />
 
         {/* Bottom Right FAB */}
-        <TouchableOpacity 
-          style={[styles.fab, { bottom: Math.max(insets.bottom + 16, 30) }]} 
-          onPress={handleNewEntry} 
+        <TouchableOpacity
+          style={[styles.fab, { bottom: Math.max(insets.bottom + 16, 30) }]}
+          onPress={handleNewEntry}
           activeOpacity={0.9}
         >
           <Text style={styles.fabIcon}>+</Text>
