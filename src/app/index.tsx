@@ -2,6 +2,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Settings, ChevronRight, PenLine, BookOpen } from 'lucide-react-native';
 import { useJournals } from '../hooks/useJournals';
 
 import { getThemeIcon } from '../utils/iconThemes';
@@ -20,10 +21,7 @@ export default function Home() {
   const [greeting, setGreeting] = useState('Good morning');
 
   useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
+    // Kept for future use if needed
   }, []);
 
   const handleNewEntry = () => {
@@ -96,16 +94,32 @@ export default function Home() {
 
         {/* Header Section */}
         <View style={styles.header}>
-          <Text style={styles.greetingText}>{greeting}</Text>
-          <TouchableOpacity
-            style={styles.todayTile}
-            activeOpacity={0.8}
-            onPress={() => router.push('/calendar')}
-          >
-            <Text style={styles.todayTileDay}>{todayTileInfo.day}</Text>
-            <Text style={styles.todayTileDate}>{todayTileInfo.date}</Text>
-          </TouchableOpacity>
+          <Text style={styles.appTitle}>OpenJournal</Text>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={() => router.push('/settings/icons')} style={styles.iconBtn}>
+              <Settings size={22} color="#0F172A" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.dateBadge}
+              activeOpacity={0.8}
+              onPress={() => router.push('/calendar')}
+            >
+              <Text style={styles.dateBadgeDay}>{todayTileInfo.day}</Text>
+              <Text style={styles.dateBadgeDate}>{todayTileInfo.date}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Action Banner */}
+        <TouchableOpacity style={styles.actionBanner} onPress={handleNewEntry} activeOpacity={0.9}>
+          <View style={styles.actionBannerLeft}>
+            <View style={styles.actionBannerIcon}>
+              <PenLine size={20} color="#FFFFFF" />
+            </View>
+            <Text style={styles.actionBannerText}>How was your day?</Text>
+          </View>
+          <ChevronRight size={20} color="#94A3B8" />
+        </TouchableOpacity>
 
         {/* Body Section - Flattened Entries List */}
         <FlatList
@@ -115,7 +129,15 @@ export default function Home() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            !isLoading ? <Text style={styles.emptyText}>No entries yet. Tap the + to start!</Text> : null
+            !isLoading ? (
+              <View style={styles.emptyState}>
+                <View style={styles.emptyStateIconBadge}>
+                  <BookOpen size={32} color="#94A3B8" />
+                </View>
+                <Text style={styles.emptyStateTitle}>No entries yet</Text>
+                <Text style={styles.emptyStateSub}>Begin your reflection today</Text>
+              </View>
+            ) : null
           }
         />
 
@@ -150,41 +172,91 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     backgroundColor: '#F8FAFC',
   },
-  greetingText: {
-    fontSize: 24,
-    fontWeight: '700',
+  appTitle: {
+    fontSize: 28,
+    fontWeight: '800',
     color: '#0F172A',
+    letterSpacing: -0.5,
   },
-  todayTile: {
-    backgroundColor: '#95A4FE', // Original rich indigo made translucent
-    borderRadius: 14,
-    width: 52, // Fixed width and height for a perfect small square
-    height: 52,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateBadge: {
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    opacity: 1,
   },
-  todayTileDay: {
-    color: '#4956a0ff', // Light periwinkle blue
-    fontSize: 12,
-    fontWeight: '800',
-    marginBottom: -1, // Squeeze text closely together
+  dateBadgeDay: {
+    color: '#94A3B8',
+    fontSize: 10,
+    fontWeight: '700',
+    marginBottom: -2,
     letterSpacing: 0.5,
   },
-  todayTileDate: {
-    color: '#4956a0ff',
-    fontSize: 18,
+  dateBadgeDate: {
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '800',
   },
+  actionBanner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginBottom: 20,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOpacity: 0.02,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  actionBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  actionBannerIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#0F172A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionBannerText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+  },
   list: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingBottom: 100, // Room for the FAB
   },
   entryCard: {
-    backgroundColor: '#E2E8F0', // Soft subtle bluish-grey matching Image 3 feel
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   entryHeader: {
     flexDirection: 'row',
@@ -228,11 +300,29 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#CBD5E1',
   },
-  emptyText: {
-    fontSize: 16,
-    color: '#94A3B8',
-    textAlign: 'center',
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 60,
+  },
+  emptyStateIconBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 8,
+  },
+  emptyStateSub: {
+    fontSize: 15,
+    color: '#64748B',
   },
   fab: {
     position: 'absolute',
