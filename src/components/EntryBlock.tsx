@@ -2,7 +2,7 @@ import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-vi
 import * as ImagePicker from 'expo-image-picker';
 import { ImagePlus, SquarePen, Trash2, X } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { JournalEntry, Mood } from '../types';
 import { getThemeIcon } from '../utils/iconThemes';
@@ -37,6 +37,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
   const [isMoodPickerVisible, setIsMoodPickerVisible] = useState(false);
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
   const createdDate = new Date(entry.createdAt);
   const updatedDate = new Date(entry.updatedAt);
@@ -100,7 +101,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
     <View style={styles.container}>
       <View style={styles.header}>
         {isEditing ? (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.badge, { backgroundColor: moodConfig[editMood]?.color || '#F3F4F6', borderWidth: 1, borderColor: '#D1D5DB', borderStyle: 'dashed' }]}
             onPress={() => setIsMoodPickerVisible(true)}
             activeOpacity={0.7}
@@ -153,16 +154,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
 
           <View style={styles.actions}>
             {onDelete ? (
-              <TouchableOpacity onPress={() => {
-                Alert.alert(
-                  'Delete Entry',
-                  'Are you sure you want to delete this entry? This cannot be undone.',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Delete', style: 'destructive', onPress: onDelete },
-                  ]
-                );
-              }} style={styles.deleteBtn}>
+              <TouchableOpacity onPress={() => setIsDeleteModalVisible(true)} style={styles.deleteBtn}>
                 <Trash2 size={16} color="#EF4444" />
               </TouchableOpacity>
             ) : <View />}
@@ -222,7 +214,7 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
             </View>
             <View style={styles.moodGrid}>
               {(Object.keys(moodConfig) as Mood[]).map(mood => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   key={mood}
                   style={[styles.moodModalBtn, editMood === mood && styles.moodModalBtnSelected]}
                   onPress={() => { setEditMood(mood); setIsMoodPickerVisible(false); }}
@@ -283,6 +275,28 @@ export default function EntryBlock({ entry, onUpdate, onDelete }: EntryBlockProp
             </TouchableOpacity>
           )}
         </View>
+      </Modal>
+      {/* Delete Confirmation Modal */}
+      <Modal visible={isDeleteModalVisible} transparent animationType="fade">
+        <TouchableOpacity style={styles.moodModalBackdrop} activeOpacity={1} onPress={() => setIsDeleteModalVisible(false)}>
+          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()} style={styles.deleteModalContent}>
+            <View style={styles.deleteModalIconBadge}>
+              <Trash2 size={24} color="#EF4444" />
+            </View>
+            <Text style={styles.deleteModalTitle}>Delete Entry?</Text>
+            <Text style={styles.deleteModalMessage}>
+              Are you sure you want to delete this entry? This action cannot be undone.
+            </Text>
+            <View style={styles.deleteModalActions}>
+              <TouchableOpacity style={styles.deleteModalCancelBtn} onPress={() => setIsDeleteModalVisible(false)}>
+                <Text style={styles.deleteModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteModalConfirmBtn} onPress={() => { setIsDeleteModalVisible(false); onDelete && onDelete(); }}>
+                <Text style={styles.deleteModalConfirmText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -583,5 +597,71 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '300',
     marginTop: -2,
+  },
+  deleteModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    width: '85%',
+    maxWidth: 320,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  deleteModalIconBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  deleteModalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  deleteModalMessage: {
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  deleteModalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  deleteModalCancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModalCancelText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  deleteModalConfirmBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#EF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteModalConfirmText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
