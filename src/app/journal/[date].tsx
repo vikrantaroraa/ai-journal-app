@@ -379,6 +379,8 @@ const styles = StyleSheet.create({
   },
   previewContainer: {
     marginTop: 12,
+    paddingTop: 8,
+    paddingRight: 8,
   },
   previewImageWrapper: {
     marginRight: 10,
@@ -393,7 +395,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -6,
-    backgroundColor: '#374151',
+    backgroundColor: '#1E293B',
     width: 20,
     height: 20,
     borderRadius: 10,

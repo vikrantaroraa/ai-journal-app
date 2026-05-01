@@ -399,6 +399,8 @@ const styles = StyleSheet.create({
   editImageStrip: {
     marginTop: 12,
     marginBottom: 4,
+    paddingTop: 8,
+    paddingRight: 8,
   },
   editImageWrapper: {
     marginRight: 10,
@@ -413,7 +415,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -6,
     right: -6,
-    backgroundColor: '#EF4444',
+    backgroundColor: '#1E293B',
     width: 20,
     height: 20,
     borderRadius: 10,
