@@ -22,25 +22,62 @@ const GUIDED_PROMPTS = [
   },
   {
     id: 2,
+    question: 'What made you smile today?',
+    placeholder: 'Write your observation here...',
+  },
+  {
+    id: 3,
+    question: 'Where did you find peace?',
+    placeholder: 'Identify a moment of stillness...',
+  },
+  {
+    id: 4,
     question: 'Where did you notice tension today, and how did you navigate it?',
     placeholder: 'Acknowledging tension is the first step to release...',
   },
   {
-    id: 3,
+    id: 5,
+    question: 'What moment today felt most authentic to your core values?',
+    placeholder: 'Start writing here...',
+  },
+  {
+    id: 6,
+    question: 'Identify a challenge you encountered. How did you respond to it?',
+    placeholder: 'Describe the friction and your reaction...',
+  },
+  {
+    id: 7,
+    question: 'What is one thing you learned about yourself this week?',
+    placeholder: 'Reflect on your growth...',
+  },
+  {
+    id: 8,
+    question: 'What did the silence teach you?',
+    placeholder: 'Listen to the quiet...',
+  },
+  {
+    id: 9,
     question: 'Which task or thought are you choosing to let go of tonight?',
     placeholder: 'Give yourself permission to be finished for today...',
+  },
+  {
+    id: 10,
+    question: 'What is one thing you are looking forward to tomorrow?',
+    placeholder: 'One word to carry forward...',
   },
 ];
 
 export default function ReflectionsScreen() {
   const { createOrGetDailyJournal, addEntry, refreshTimeline } = useJournals();
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [threeWords, setThreeWords] = useState<[string, string, string]>(['', '', '']);
   const [isSaving, setIsSaving] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       // Reset answers on focus for a fresh session
       setAnswers({});
+      setThreeWords(['', '', '']);
     }, [])
   );
 
@@ -48,7 +85,7 @@ export default function ReflectionsScreen() {
     setAnswers(prev => ({ ...prev, [promptId]: text }));
   };
 
-  const hasContent = Object.values(answers).some(a => a.trim().length > 0);
+  const hasContent = Object.values(answers).some(a => a.trim().length > 0) || threeWords.some(w => w.trim().length > 0);
 
   const handleSaveReflection = async () => {
     if (!hasContent || isSaving) return;
@@ -59,6 +96,12 @@ export default function ReflectionsScreen() {
       const contentParts = GUIDED_PROMPTS
         .filter(p => answers[p.id]?.trim())
         .map(p => `**${p.question}**\n${answers[p.id]!.trim()}`);
+
+      // Add the three words question if any word was entered
+      const filledWords = threeWords.filter(w => w.trim());
+      if (filledWords.length > 0) {
+        contentParts.push(`**In three words, describe the underlying emotion of your day.**\n${filledWords.join(', ')}`);
+      }
 
       const formattedContent = contentParts.join('\n\n');
 
@@ -77,6 +120,7 @@ export default function ReflectionsScreen() {
 
       // Reset and show confirmation
       setAnswers({});
+      setThreeWords(['', '', '']);
       Alert.alert('Reflection Saved', 'Your guided reflection has been saved to your journal.');
     } catch (e) {
       console.error('Failed to save reflection:', e);
@@ -131,6 +175,36 @@ export default function ReflectionsScreen() {
                 )}
               </View>
             ))}
+          </View>
+
+          {/* Three Words Question */}
+          <View style={styles.threeWordsBlock}>
+            <View style={styles.promptHeader}>
+              <Text style={styles.promptNumber}>
+                {String(GUIDED_PROMPTS.length + 1).padStart(2, '0')}
+              </Text>
+              <Text style={styles.promptQuestion}>
+                In three words, describe the underlying emotion of your day.
+              </Text>
+            </View>
+            <View style={styles.threeWordsRow}>
+              {[0, 1, 2].map(i => (
+                <TextInput
+                  key={i}
+                  style={styles.wordInput}
+                  placeholder={`Word ${i + 1}`}
+                  placeholderTextColor="#B0B8C1"
+                  value={threeWords[i]}
+                  onChangeText={(text) => {
+                    setThreeWords(prev => {
+                      const next: [string, string, string] = [...prev];
+                      next[i] = text;
+                      return next;
+                    });
+                  }}
+                />
+              ))}
+            </View>
           </View>
 
           {/* Save Button */}
@@ -259,5 +333,23 @@ const styles = StyleSheet.create({
     color: '#B0B8C1',
     marginTop: 20,
     marginBottom: 10,
+  },
+  threeWordsBlock: {
+    paddingHorizontal: 24,
+    marginTop: 16,
+  },
+  threeWordsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  wordInput: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    fontSize: 15,
+    color: '#334155',
+    textAlign: 'center',
   },
 });
