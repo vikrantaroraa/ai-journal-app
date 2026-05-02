@@ -1,5 +1,5 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -13,6 +13,16 @@ import {
   View,
 } from 'react-native';
 import { useJournals } from '../../hooks/useJournals';
+
+const DAILY_SUBTITLES = [
+  'Take a moment to breathe. Let these questions guide you into a state of intentional rest.',
+  'Take a moment to curate the thoughts of today, making space for tomorrow\'s potential.',
+  'Take a breath. Allow the day to settle like dust before you begin.',
+  'Take a moment to breathe and observe your day with quiet intentionality.',
+  'The world is loud, but this room is quiet. Let these questions guide your inner dialogue.',
+  'There is no right answer here. Only honest ones.',
+  'You showed up today. That\'s already enough. Now, let\'s look a little closer.',
+];
 
 const GUIDED_PROMPTS = [
   {
@@ -150,6 +160,13 @@ export default function ReflectionsScreen() {
     }
   };
 
+  // Pick a subtitle based on today's date (consistent within a day)
+  const dailySubtitle = useMemo(() => {
+    const today = new Date();
+    const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+    return DAILY_SUBTITLES[seed % DAILY_SUBTITLES.length];
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -167,7 +184,7 @@ export default function ReflectionsScreen() {
             <Text style={styles.headerLabel}>DAILY GUIDED PRACTICE</Text>
             <Text style={styles.headerTitle}>Evening Reflections</Text>
             <Text style={styles.headerSubtitle}>
-              Take a moment to breathe. Let these questions guide you into a state of intentional rest.
+              {dailySubtitle}
             </Text>
           </View>
 
