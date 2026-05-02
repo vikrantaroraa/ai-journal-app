@@ -42,7 +42,7 @@ const GUIDED_PROMPTS = [
   },
   {
     id: 6,
-    question: 'Identify a challenge you encountered. How did you respond to it?',
+    question: 'Identify a challenge you encountered. How did you respond to it, and how did it shape your perspective?',
     placeholder: 'Describe the friction and your reaction...',
   },
   {
