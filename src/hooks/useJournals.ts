@@ -50,8 +50,8 @@ export function useJournals() {
     ));
   };
 
-  const addEntry = async (dailyJournalId: number, mood: Mood, content: string, images?: string[]) => {
-    const newEntryId = await db.addEntry(dailyJournalId, mood, content, images, iconTheme);
+  const addEntry = async (dailyJournalId: number, mood: Mood, content: string, images?: string[], entryType: 'standard' | 'guided_reflection' = 'standard') => {
+    const newEntryId = await db.addEntry(dailyJournalId, mood, content, images, iconTheme, entryType);
     const newEntry: JournalEntry = {
       id: newEntryId,
       dailyJournalId,
@@ -59,6 +59,7 @@ export function useJournals() {
       content,
       images,
       iconTheme,
+      entryType,
       createdAt: new Date(),
       updatedAt: new Date()
     };

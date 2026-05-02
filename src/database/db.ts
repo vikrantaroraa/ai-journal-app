@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { DailyJournal, JournalEntry, Mood } from '../types';
+import { DailyJournal, EntryType, JournalEntry, Mood } from '../types';
 
 let db: SQLite.SQLiteDatabase | null = null;
 
@@ -78,6 +78,16 @@ export async function setupDatabase() {
       console.log("Migration skipped for icon_theme:", e);
     }
   }
+
+  // Feature 8 migration: Add entry_type column
+  const hasEntryType = tableInfo.some(col => col.name === 'entry_type');
+  if (!hasEntryType) {
+    try {
+      await database.execAsync("ALTER TABLE journal_entries ADD COLUMN entry_type TEXT DEFAULT 'standard';");
+    } catch (e) {
+      console.log("Migration skipped for entry_type:", e);
+    }
+  }
 }
 
 export async function getTimeline(): Promise<DailyJournal[]> {
@@ -102,6 +112,7 @@ export async function getTimeline(): Promise<DailyJournal[]> {
       content: row.content,
       images: parseImages(row.image_uri),
       iconTheme: row.icon_theme || 'emoji',
+      entryType: (row.entry_type as EntryType) || 'standard',
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
     });
@@ -136,6 +147,7 @@ export async function getDailyJournal(dateString: string): Promise<DailyJournal 
     content: row.content,
     images: parseImages(row.image_uri),
     iconTheme: row.icon_theme || 'emoji',
+    entryType: (row.entry_type as EntryType) || 'standard',
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   }));
@@ -164,12 +176,12 @@ export async function updateDailyTitle(id: number, title: string): Promise<void>
   );
 }
 
-export async function addEntry(dailyJournalId: number, mood: Mood, content: string, images?: string[], iconTheme: string = 'emoji'): Promise<number> {
+export async function addEntry(dailyJournalId: number, mood: Mood, content: string, images?: string[], iconTheme: string = 'emoji', entryType: EntryType = 'standard'): Promise<number> {
   const database = await getDatabase();
   const now = new Date().toISOString();
   const dbImageStr = images && images.length > 0 ? JSON.stringify(images) : '';
   await database.execAsync(
-    `INSERT INTO journal_entries (daily_journal_id, mood, content, image_uri, icon_theme, created_at, updated_at) VALUES (${dailyJournalId}, '${esc(mood)}', '${esc(content)}', '${esc(dbImageStr)}', '${esc(iconTheme)}', '${esc(now)}', '${esc(now)}')`
+    `INSERT INTO journal_entries (daily_journal_id, mood, content, image_uri, icon_theme, entry_type, created_at, updated_at) VALUES (${dailyJournalId}, '${esc(mood)}', '${esc(content)}', '${esc(dbImageStr)}', '${esc(iconTheme)}', '${esc(entryType)}', '${esc(now)}', '${esc(now)}')`
   );
   const row = await database.getFirstAsync<any>('SELECT last_insert_rowid() as id');
   return row.id;

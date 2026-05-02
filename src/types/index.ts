@@ -1,5 +1,7 @@
 export type Mood = 'Happy' | 'Calm' | 'Sad' | 'Excited' | 'Tired' | 'Grateful' | 'Anxious' | 'Angry' | 'Productive' | 'Inspired';
 
+export type EntryType = 'standard' | 'guided_reflection';
+
 export interface JournalEntry {
   id: number;
   dailyJournalId: number;
@@ -7,6 +9,7 @@ export interface JournalEntry {
   content: string;
   images?: string[];
   iconTheme?: string;
+  entryType?: EntryType;
   createdAt: Date;
   updatedAt: Date;
 }

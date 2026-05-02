@@ -3,9 +3,9 @@ import { BookOpen, ChevronRight, PenLine, Settings } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useJournals } from '../hooks/useJournals';
+import { useJournals } from '../../hooks/useJournals';
 
-import { getThemeIcon } from '../utils/iconThemes';
+import { getThemeIcon } from '../../utils/iconThemes';
 
 export default function Home() {
   const { timeline, isLoading, refreshTimeline, iconTheme } = useJournals();
@@ -143,7 +143,7 @@ export default function Home() {
 
         {/* Bottom Right FAB */}
         <TouchableOpacity
-          style={[styles.fab, { bottom: Math.max(insets.bottom + 16, 30) }]}
+          style={[styles.fab, { bottom: 16 }]}
           onPress={handleNewEntry}
           activeOpacity={0.9}
         >
