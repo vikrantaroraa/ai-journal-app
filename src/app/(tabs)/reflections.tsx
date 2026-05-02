@@ -27,7 +27,7 @@ const GUIDED_PROMPTS = [
   },
   {
     id: 3,
-    question: 'Where did you find peace?',
+    question: 'What brought you peace today?',
     placeholder: 'Identify a moment of stillness...',
   },
   {
