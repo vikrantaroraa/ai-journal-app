@@ -141,15 +141,6 @@ export default function Home() {
           }
         />
 
-        {/* Bottom Right FAB */}
-        <TouchableOpacity
-          style={[styles.fab, { bottom: 16 }]}
-          onPress={handleNewEntry}
-          activeOpacity={0.9}
-        >
-          <Text style={styles.fabIcon}>+</Text>
-        </TouchableOpacity>
-
       </View>
     </SafeAreaView>
   );
@@ -324,27 +315,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#64748B',
   },
-  fab: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20, // Shifted to right side
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(32, 35, 66, 0.9)', // Solid rich indigo with a tint of translucency
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
-  },
-  fabIcon: {
-    color: '#FFFFFF',
-    fontSize: 36,
-    fontWeight: '300',
-    lineHeight: 40,
-    marginTop: -2,
-  }
 });
