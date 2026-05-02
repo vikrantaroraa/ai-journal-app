@@ -62,8 +62,28 @@ const GUIDED_PROMPTS = [
   },
   {
     id: 10,
+    question: 'What small moment of beauty did you witness today?',
+    placeholder: 'Think about colors, textures, sounds, and sensations that felt gentle...',
+  },
+  {
+    id: 11,
+    question: 'In what areas of your life are you currently seeking more space?',
+    placeholder: 'Explore the boundaries you want to expand or redefine...',
+  },
+  {
+    id: 12,
+    question: 'How can you invite more stillness into your tomorrow?',
+    placeholder: 'Identify a single, quiet action you can take to ground yourself...',
+  },
+  {
+    id: 13,
     question: 'What is one thing you are looking forward to tomorrow?',
     placeholder: 'One word to carry forward...',
+  },
+  {
+    id: 14,
+    question: 'How do you want to feel when you wake up tomorrow?',
+    placeholder: 'Set an intention for the morning version of yourself...',
   },
 ];
 
