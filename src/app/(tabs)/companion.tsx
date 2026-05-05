@@ -105,7 +105,11 @@ export default function CompanionScreen() {
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
   };
 
   return (
@@ -211,7 +215,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: Platform.OS === 'android' ? 48 : 16,
+    paddingBottom: 16,
     backgroundColor: '#F8FAFC',
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
@@ -334,7 +339,7 @@ const styles = StyleSheet.create({
   sendButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 10,
     backgroundColor: '#475569', // Dark slate
     alignItems: 'center',
     justifyContent: 'center',
