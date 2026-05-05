@@ -1,8 +1,8 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { ImagePlus } from 'lucide-react-native';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import EntryBlock from '../../components/EntryBlock';
 import { useJournals } from '../../hooks/useJournals';
@@ -119,7 +119,7 @@ export default function DailyJournalScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
       <Stack.Screen options={{ title: '' }} />
