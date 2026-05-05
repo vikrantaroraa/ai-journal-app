@@ -1,17 +1,19 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Tabs } from 'expo-router';
-import { BookOpen, Sparkles } from 'lucide-react-native';
+import { BookOpen, Flower, Sparkles } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TAB_ICONS: Record<string, (color: string) => React.ReactNode> = {
   index: (color) => <BookOpen size={22} color={color} />,
   reflections: (color) => <Sparkles size={22} color={color} />,
+  companion: (color) => <Flower size={22} color={color} />,
 };
 
 const TAB_LABELS: Record<string, string> = {
   index: 'JOURNAL',
   reflections: 'REFLECTIONS',
+  companion: 'COMPANION',
 };
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -48,6 +50,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'JOURNAL' }} />
       <Tabs.Screen name="reflections" options={{ title: 'REFLECTIONS' }} />
+      <Tabs.Screen name="companion" options={{ title: 'COMPANION' }} />
     </Tabs>
   );
 }
