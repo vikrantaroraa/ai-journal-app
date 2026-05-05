@@ -105,10 +105,10 @@ export default function CompanionScreen() {
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     });
   };
 
@@ -125,7 +125,7 @@ export default function CompanionScreen() {
               <WandSparkles size={20} color="#0F172A" />
             </View>
             <View>
-              <Text style={styles.headerTitle}>AI Companion</Text>
+              <Text style={styles.headerTitle}>ARIA</Text>
               <Text style={styles.headerSubtitle}>Deep listening active</Text>
             </View>
           </View>
