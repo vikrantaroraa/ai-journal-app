@@ -13,6 +13,7 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { ChatMessage } from '../../types/chat';
 import { aiService } from '../../utils/aiService';
 
@@ -48,6 +49,8 @@ export default function CompanionScreen() {
   const insets = useSafeAreaInsets();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
+  const [baseInputText, setBaseInputText] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -101,6 +104,35 @@ export default function CompanionScreen() {
       setMessages(prev => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  useSpeechRecognitionEvent('start', () => setIsRecording(true));
+  useSpeechRecognitionEvent('end', () => setIsRecording(false));
+  useSpeechRecognitionEvent('result', (event) => {
+    setInputText(baseInputText + (baseInputText.length > 0 ? ' ' : '') + event.results[0].transcript);
+  });
+  useSpeechRecognitionEvent('error', (event) => {
+    console.log('Speech recognition error:', event.error, event.message);
+    setIsRecording(false);
+  });
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      ExpoSpeechRecognitionModule.stop();
+      setIsRecording(false);
+    } else {
+      const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (!result.granted) {
+        console.warn('Speech recognition permissions not granted');
+        return;
+      }
+      setBaseInputText(inputText);
+      ExpoSpeechRecognitionModule.start({
+        lang: 'en-US',
+        interimResults: true,
+        maxAlternatives: 1,
+      });
     }
   };
 
@@ -181,11 +213,11 @@ export default function CompanionScreen() {
             />
             <View style={styles.inputFooter}>
               <View style={styles.inputActions}>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Smile size={20} color="#94A3B8" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                  <Mic size={20} color="#94A3B8" />
+                <TouchableOpacity 
+                  style={[styles.actionButton, isRecording && styles.actionButtonActive]}
+                  onPress={toggleRecording}
+                >
+                  <Mic size={20} color={isRecording ? "#EF4444" : "#94A3B8"} />
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
@@ -335,7 +367,11 @@ const styles = StyleSheet.create({
     paddingLeft: 4,
   },
   actionButton: {
-    padding: 4,
+    padding: 6,
+  },
+  actionButtonActive: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 20,
   },
   sendButton: {
     width: 36,

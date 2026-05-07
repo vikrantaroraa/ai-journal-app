@@ -36,7 +36,14 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow AI Journal App to access your microphone",
+          "speechRecognitionPermission": "Allow AI Journal App to securely recognize user speech"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
