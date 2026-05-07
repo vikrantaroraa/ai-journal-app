@@ -132,6 +132,7 @@ export default function CompanionScreen() {
         lang: 'en-US',
         interimResults: true,
         maxAlternatives: 1,
+        requiresOnDeviceRecognition: false, // Ensures it can use the highly accurate cloud model
       });
     }
   };
@@ -210,6 +211,8 @@ export default function CompanionScreen() {
               onChangeText={setInputText}
               multiline
               maxLength={1000}
+              autoCorrect={true}
+              spellCheck={true}
             />
             <View style={styles.inputFooter}>
               <View style={styles.inputActions}>
