@@ -120,7 +120,7 @@ export default function DailyJournalScreen() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior="padding"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 90}
     >
       <Stack.Screen options={{ title: '' }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
